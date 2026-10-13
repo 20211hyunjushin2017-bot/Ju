@@ -1,0 +1,116 @@
+import { useImperativeHandle, useRef, type Ref } from 'react'
+import { setTrainSpeed } from './sound'
+
+export type TrainHandle = {
+  // tiles: 창문 너비 몇 칸만큼 풍경이 지나갈지 (짝수여야 원래 풍경에서 멈춤)
+  ride: (tiles: number, ms: number) => Promise<void>
+  skip: () => void
+}
+
+const STRIP_TILES = 13
+const img = (name: string) => `${import.meta.env.BASE_URL}images/${name}`
+
+export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean }) {
+  const sceneRef = useRef<HTMLDivElement>(null)
+  const sharpRef = useRef<HTMLDivElement>(null)
+  const blurRef = useRef<HTMLDivElement>(null)
+  const blurStripRef = useRef<HTMLDivElement>(null)
+  const polesRef = useRef<HTMLDivElement>(null)
+  const active = useRef<{ raf: number; finish: () => void } | null>(null)
+
+  function paint(p: number, v: number, t: number) {
+    const shift = `translate3d(${(-p * 100) / STRIP_TILES}%,0,0)`
+    sharpRef.current!.style.transform = shift
+    blurStripRef.current!.style.transform = shift
+    const blur = Math.min(1, v * 2.2)
+    blurRef.current!.style.opacity = String(blur * blur * (3 - 2 * blur))
+    const poleFrac = ((p * 2.3) / 0.6) % 1
+    polesRef.current!.style.transform = `translate3d(${-poleFrac * 25}%,0,0)`
+    polesRef.current!.style.opacity = String(Math.max(0, v - 0.25) * 0.9)
+    const shake = Math.sin(t * 0.045) * 1.4 * v + Math.sin(t * 0.13) * 0.5 * v
+    sceneRef.current!.style.transform = `translate(-50%, calc(-50% + ${shake}px))`
+    setTrainSpeed(v)
+  }
+
+  useImperativeHandle(ref, () => ({
+    ride(tiles, ms) {
+      active.current?.finish()
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      return new Promise<void>((resolve) => {
+        const finish = () => {
+          if (active.current) cancelAnimationFrame(active.current.raf)
+          active.current = null
+          paint(0, 0, 0)
+          resolve()
+        }
+        if (reduced) {
+          finish()
+          return
+        }
+        const a = ms * 0.22
+        const d = ms * 0.38
+        const vmax = tiles / (ms - a / 2 - d / 2)
+        const start = performance.now()
+        const tick = (now: number) => {
+          const t = now - start
+          if (t >= ms) {
+            finish()
+            return
+          }
+          let p: number
+          let v: number
+          if (t < a) {
+            p = (0.5 * vmax * t * t) / a
+            v = t / a
+          } else if (t < ms - d) {
+            p = 0.5 * vmax * a + vmax * (t - a)
+            v = 1
+          } else {
+            const tc = t - (ms - d)
+            p = 0.5 * vmax * a + vmax * (ms - d - a) + vmax * tc - (0.5 * vmax * tc * tc) / d
+            v = 1 - tc / d
+          }
+          paint(p, v, t)
+          active.current!.raf = requestAnimationFrame(tick)
+        }
+        active.current = { raf: requestAnimationFrame(tick), finish }
+      })
+    },
+    skip() {
+      active.current?.finish()
+    },
+  }))
+
+  const tiles = (name: string) =>
+    Array.from({ length: STRIP_TILES }, (_, i) => (
+      <div
+        key={i}
+        className="tile"
+        style={{
+          backgroundImage: `url(${img(name)})`,
+          transform: i % 2 ? 'scaleX(-1)' : undefined,
+        }}
+      />
+    ))
+
+  return (
+    <div className="stage" aria-hidden="true">
+      <div className="scene" ref={sceneRef}>
+        <img className="scene-img" src={img('train.webp')} alt="" />
+        <div className="window">
+          <div className="strip" ref={sharpRef}>
+            {tiles('view.webp')}
+          </div>
+          <div className="window-blur" ref={blurRef}>
+            <div className="strip" ref={blurStripRef}>
+              {tiles('view-blur.webp')}
+            </div>
+          </div>
+          <div className="poles" ref={polesRef} />
+        </div>
+        <img className="scene-img latch" src={img('train.webp')} alt="" />
+      </div>
+      <div className={dim ? 'stage-shade on' : 'stage-shade'} />
+    </div>
+  )
+}

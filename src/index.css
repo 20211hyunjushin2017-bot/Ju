@@ -1,18 +1,35 @@
 :root {
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  color: #111827;
-  background: #ffffff;
+  --cream: #f3ead8;
+  --paper: #f6efe1;
+  --ink-dark: #2a1d14;
+  --wood: #1a0f08;
+  --display: 'Archivo', 'Noto Sans KR', sans-serif;
+  --body: 'Noto Sans KR', system-ui, sans-serif;
+  font-family: var(--body);
+  color: var(--cream);
+  background: var(--wood);
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f9fafb;
-    background: #0b0f19;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  background: var(--wood);
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid #f2b66d;
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
