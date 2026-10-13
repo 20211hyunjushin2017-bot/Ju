@@ -47,7 +47,7 @@ function LetterIcon() {
       <g className="letter-paper">
         <path d="M60 22 L74 33 H46 Z" fill="#f53333" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
         <path d="M24 56 L33 49 V70 Z M96 56 L87 49 V70 Z" fill="#f53333" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
-        <rect x="33" y="33" width="54" height="44" fill="#fff" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+        <rect x="33" y="33" width="54" height="44" fill="#efe3c8" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
       </g>
       <path d="M24 56 L60 85 L96 56 V102 a5 5 0 0 1 -5 5 H29 a5 5 0 0 1 -5 -5 Z" fill="#ff4848" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
       <path d="M27 104 L57 73 a4 4 0 0 1 6 0 L93 104" fill="#ff4848" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
@@ -194,8 +194,12 @@ function ExploreScroll({
             <Arrow />
           </button>
         </div>
-        <button className="next-chapter" onClick={onNext}>
-          {nextLabel}
+        <button
+          className={nextLabel === 'letter' ? 'next-chapter letter-next' : 'next-chapter'}
+          onClick={onNext}
+          aria-label={nextLabel === 'letter' ? '마지막 편지 열기' : undefined}
+        >
+          {nextLabel === 'letter' ? <LetterIcon /> : nextLabel}
         </button>
       </div>
     </motion.div>
@@ -353,7 +357,6 @@ function ChapterScreen({
           whileTap={{ scale: 0.95 }}
         >
           <LetterIcon />
-          <span>편지 열기</span>
         </motion.button>
       )}
     </motion.section>
@@ -514,7 +517,7 @@ export default function App() {
             key={`explore-${current}`}
             chapter={chapters[current]}
             onClose={() => setExploring(false)}
-            nextLabel={current < chapters.length - 1 ? 'Next chapter' : '편지 열기'}
+            nextLabel={current < chapters.length - 1 ? 'Next chapter' : 'letter'}
             onNext={() => {
               if (current < chapters.length - 1) void goToChapter(current + 1)
               else openLetter()

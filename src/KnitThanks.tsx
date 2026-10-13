@@ -85,16 +85,36 @@ function rasterize(lines: KnitLine[], cols: number, rows: number) {
   let y = Math.round((rows - total) / 2)
   const heartCells: [number, number][] = []
   const bounds = { x0: cols, y0: rows, x1: 0, y1: 0 }
+  // 글자 단위로 떠지도록, 읽는 순서대로 글자마다 차지하는 칸 범위를 기록
+  const pieces: ({ kind: 'char'; r0: number; r1: number; c0: number; c1: number } | { kind: 'heart'; cells: [number, number][] })[] = []
   for (const l of lines) {
     g.font = `${l.size * S}px ${l.font}`
     const w = g.measureText(l.text).width / S
     const heartW = l.heart ? HEART[0].length + 3 : 0
     const x = Math.round((cols - (w + heartW)) / 2)
     g.fillText(l.text, x * S, (y + l.size * 0.82) * S)
+    const chars = Array.from(l.text)
+    let acc = ''
+    chars.forEach((ch, i) => {
+      const a = x + g.measureText(acc).width / S
+      acc += ch
+      const b = x + g.measureText(acc).width / S
+      if (ch.trim())
+        pieces.push({
+          kind: 'char',
+          r0: y - Math.floor(gap / 2),
+          r1: y + l.size + Math.ceil(gap / 2),
+          c0: i === 0 ? 0 : Math.floor(a),
+          c1: i === chars.length - 1 && !l.heart ? cols : Math.floor(b),
+        })
+    })
     if (l.heart) {
       const hx = Math.round(x + w + 3)
       const hy = Math.round(y + l.size * 0.82 - HEART.length - 1)
-      HEART.forEach((row, ry) => [...row].forEach((ch, rx) => ch === '#' && heartCells.push([hx + rx, hy + ry])))
+      const cells: [number, number][] = []
+      HEART.forEach((row, ry) => [...row].forEach((ch, rx) => ch === '#' && cells.push([hx + rx, hy + ry])))
+      heartCells.push(...cells)
+      pieces.push({ kind: 'heart', cells })
     }
     bounds.x0 = Math.min(bounds.x0, x)
     bounds.x1 = Math.max(bounds.x1, x + w + heartW)
@@ -122,15 +142,56 @@ function rasterize(lines: KnitLine[], cols: number, rows: number) {
     [right - 3, bounds.y1 + 4],
     [Math.round((bounds.x0 + bounds.x1) / 2) - 2, Math.round(bounds.y0 - 11)],
   ]
-  for (const [sx, sy] of sparks)
+  const sparkPieces: [number, number][][] = []
+  for (const [sx, sy] of sparks) {
+    const cells: [number, number][] = []
     SPARK.forEach((row, ry) =>
       [...row].forEach((ch, rx) => {
         const x = sx + rx
         const yy = sy + ry
-        if (ch === '#' && x >= 0 && x < cols && yy >= 0 && yy < rows && !mask[yy * cols + x]) mask[yy * cols + x] = 3
+        if (ch === '#' && x >= 0 && x < cols && yy >= 0 && yy < rows && !mask[yy * cols + x]) {
+          mask[yy * cols + x] = 3
+          cells.push([x, yy])
+        }
       }),
     )
-  return mask
+    sparkPieces.push(cells)
+  }
+
+  // 각 코가 몇 번째 글자에 속하는지 (-1: 배경)
+  const group = new Int16Array(cols * rows).fill(-1)
+  let gi = 0
+  for (const pc of pieces) {
+    if (pc.kind === 'heart') {
+      for (const [x, yy] of pc.cells) if (x >= 0 && x < cols && yy >= 0 && yy < rows) group[yy * cols + x] = gi
+    } else {
+      for (let r = Math.max(0, pc.r0); r < Math.min(rows, pc.r1); r++)
+        for (let c = Math.max(0, pc.c0); c < Math.min(cols, pc.c1); c++) {
+          const i = r * cols + c
+          if (mask[i] === 1 && group[i] < 0) group[i] = gi
+        }
+    }
+    gi++
+  }
+  // 글자 폭 밖으로 삐져나온 코는 같은 단에서 가장 가까운 글자에 붙임
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const i = r * cols + c
+      if (mask[i] !== 1 || group[i] >= 0) continue
+      for (let d = 1; d < cols; d++) {
+        const L = c - d >= 0 ? group[i - d] : -1
+        const R = c + d < cols ? group[i + d] : -1
+        if (L >= 0 || R >= 0) {
+          group[i] = L >= 0 ? L : R
+          break
+        }
+      }
+    }
+  for (const cells of sparkPieces) {
+    for (const [x, yy] of cells) group[yy * cols + x] = gi
+    gi++
+  }
+  return { mask, group, groupCount: gi }
 }
 
 export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: () => void }) {
@@ -159,7 +220,8 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
       let layout = lines
       if (W / (widest(lines) + 26) < 5) layout = splitLines(lines)
       const need = widest(layout)
-      const cw = Math.max(3, Math.min(11, W / (need + 26)))
+      // 글자 폭이 화면의 약 60%가 되도록 코 크기를 정함
+      const cw = Math.max(3, Math.min(8.5, W / (need / 0.6)))
       const ch = cw * 0.86
       const cols = Math.ceil(W / cw)
       const rows = Math.ceil(H / ch)
@@ -172,7 +234,7 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
 
       const bgSprites = YARN_BG.map((c) => stitchSprite(c, cw, ch, dpr))
       const sprites = [null, stitchSprite(YARN_TEXT, cw, ch, dpr), stitchSprite(YARN_HEART, cw, ch, dpr), stitchSprite(YARN_SPARK, cw, ch, dpr)]
-      const mask = rasterize(layout, cols, rows)
+      const { mask, group, groupCount } = rasterize(layout, cols, rows)
 
       const bgOf = (i: number) => bgSprites[(i * 2654435761) % 3 >>> 0]
       const draw = (s: HTMLCanvasElement, col: number, row: number, alpha = 1) => {
@@ -183,33 +245,36 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
       g.fillRect(0, 0, W, H)
       for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) draw(bgOf(r * cols + c), c, r)
 
-      // 아래 단부터 위로, 단마다 방향을 바꿔 가며 뜨기
-      const order: number[] = []
-      for (let r = rows - 1, k = 0; r >= 0; r--, k++) {
-        const rowCells: number[] = []
-        for (let c = 0; c < cols; c++) if (mask[r * cols + c]) rowCells.push(r * cols + c)
-        if (k % 2) rowCells.reverse()
-        order.push(...rowCells)
-      }
+      // 왼쪽 위 글자부터 한 글자씩, 글자 안에서는 위 단부터 떠 내려감
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const total = reduced ? 1 : 3800
+      const perGroup = reduced ? 0 : 150
       const fade = 140
+      const members: number[][] = Array.from({ length: groupCount }, () => [])
+      for (let i = 0; i < mask.length; i++) if (mask[i] && group[i] >= 0) members[group[i]].push(i)
+      const timed: { idx: number; at: number }[] = []
+      members.forEach((cells, g) =>
+        cells.forEach((idx, k) => timed.push({ idx, at: g * perGroup + (k / cells.length) * perGroup * 1.3 })),
+      )
+      timed.sort((a, b) => a.at - b.at)
+      const order = timed.map((o) => o.idx)
+      const startAt = timed.map((o) => o.at)
+      const done = new Uint8Array(order.length)
       const t0 = performance.now()
       const tick = (now: number) => {
         const t = now - t0
         for (let i = 0; i < order.length; i++) {
-          const startAt = (i / order.length) * total
-          const p = (t - startAt) / fade
+          const p = (t - startAt[i]) / fade
           if (p <= 0) break
-          if (p > 1 + 16 / fade) continue
+          if (done[i]) continue
           const idx = order[i]
           const col = idx % cols
           const row = (idx - col) / cols
           draw(bgOf(idx), col, row)
           draw(sprites[mask[idx]]!, col, row, Math.min(1, p))
+          if (p >= 1) done[i] = 1
         }
         g.globalAlpha = 1
-        if (t < total + fade + 20) raf = requestAnimationFrame(tick)
+        if (done.indexOf(0) !== -1) raf = requestAnimationFrame(tick)
       }
       raf = requestAnimationFrame(tick)
     }
