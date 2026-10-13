@@ -15,9 +15,12 @@ export type Chapter = {
   subtitle: string
   // 오른쪽 아래 자막 상자에 나오는 문장
   caption: string
-  theme: { bg: string; band: string; accent: string; ink: string }
-  // 챕터 배경 이미지 (없으면 단색 배경)
+  // bg: 배경색, accent: 펼쳐지는 종이의 제목 색, ink: 챕터 제목 글자색
+  theme: { bg: string; accent: string; ink: string }
+  // 챕터 배경 이미지 (없으면 단색 배경). 1672×941 비율 기준
   image?: string
+  // 배경 위를 걸어 들어오는 캐릭터. x, y, w는 배경 이미지(1672×941) 기준 픽셀 위치
+  walkers?: { src: string; x: number; y: number; w: number }[]
   sections: Section[]
 }
 
@@ -64,7 +67,13 @@ export const chapters: Chapter[] = [
     title: '오션Way 2.0 & AX',
     subtitle: '[챕터 1 한 줄 소개]',
     caption: '[챕터 1 자막 문장]',
-    theme: { bg: '#16324a', band: '#e8742c', accent: '#f2b66d', ink: '#f3ead8' },
+    theme: { bg: '#05060a', accent: '#16324a', ink: '#e6d6b4' },
+    image: 'ch1-bg.webp',
+    walkers: [
+      { src: 'ch1-hero-yellow.webp', x: 630, y: 650, w: 170 },
+      { src: 'ch1-hero-blue.webp', x: 800, y: 650, w: 175 },
+      { src: 'ch1-hero-green.webp', x: 940, y: 650, w: 210 },
+    ],
     sections: placeholder('오션Way 2.0과 AX'),
   },
   {
@@ -72,7 +81,7 @@ export const chapters: Chapter[] = [
     title: '직무 교육과 교육 운영',
     subtitle: '[챕터 2 한 줄 소개]',
     caption: '[챕터 2 자막 문장]',
-    theme: { bg: '#1f4a45', band: '#d9a441', accent: '#e9c77b', ink: '#f3ead8' },
+    theme: { bg: '#1f4a45', accent: '#1f4a45', ink: '#f3ead8' },
     sections: placeholder('직무 교육과 교육 운영'),
   },
   {
@@ -80,7 +89,7 @@ export const chapters: Chapter[] = [
     title: 'HPSI',
     subtitle: '[챕터 3 한 줄 소개]',
     caption: '[챕터 3 자막 문장]',
-    theme: { bg: '#6b3a2e', band: '#2a1d1a', accent: '#f0a36b', ink: '#f6ecdc' },
+    theme: { bg: '#6b3a2e', accent: '#6b3a2e', ink: '#f6ecdc' },
     sections: placeholder('HPSI'),
   },
 ]

@@ -57,60 +57,134 @@ function Captions({ lines, interval }: { lines: string[]; interval: number }) {
   )
 }
 
-function ExplorePanel({ chapter, onClose }: { chapter: Chapter; onClose: () => void }) {
+const IMG_W = 1672
+const IMG_H = 941
+
+function ExploreScroll({
+  chapter,
+  onClose,
+  nextLabel,
+  onNext,
+}: {
+  chapter: Chapter
+  onClose: () => void
+  nextLabel: string
+  onNext: () => void
+}) {
+  const [idx, setIdx] = useState(0)
+  const total = chapter.sections.length
+  const s = chapter.sections[idx]
+  const go = (d: number) => setIdx((i) => Math.min(total - 1, Math.max(0, i + d)))
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowRight') go(1)
+      if (e.key === 'ArrowLeft') go(-1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
+  const unroll = { duration: 1.1, ease: [0.45, 0, 0.2, 1] as const }
+  const rollup = { duration: 0.7, ease: [0.6, 0, 0.4, 1] as const }
+
   return (
     <motion.div
-      className="explore-backdrop"
+      className="scroll-backdrop"
+      style={{ '--accent': chapter.theme.accent } as CSSProperties}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
+      exit={{ opacity: 0, transition: { delay: 0.4 } }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Chapter ${chapter.number} ${chapter.title}`}
     >
-      <motion.article
-        className="explore"
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Chapter ${chapter.number} ${chapter.title}`}
-        style={{ '--accent': chapter.theme.bg } as CSSProperties}
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="explore-head">
-          <div>
-            <p className="eyebrow">CHAPTER {chapter.number}</p>
-            <h2>{chapter.title}</h2>
-          </div>
-          <button className="close" onClick={onClose} aria-label="닫기">
-            ×
-          </button>
-        </header>
-        <div className="explore-grid">
-          {chapter.sections.map((s, i) => (
-            <motion.section
-              key={i}
-              className={i === 0 ? 'card wide' : 'card'}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 + i * 0.1 }}
-            >
-              {s.image && <img src={imgUrl(s.image)} alt="" />}
-              <h3>{s.heading}</h3>
-              <p>{s.body}</p>
-              {s.points && (
-                <ul>
-                  {s.points.map((pt, j) => (
-                    <li key={j}>{pt}</li>
-                  ))}
-                </ul>
-              )}
-            </motion.section>
-          ))}
+      <button className="close scroll-close" onClick={onClose} aria-label="닫기">
+        ×
+      </button>
+      <div className="scroll-rig">
+        <div className="rod" />
+        <div className="sheet-area">
+          <AnimatePresence mode="wait">
+            <motion.div key={idx} className="sheet-wrap">
+              <motion.div
+                className={`sheet tone-${idx % 3}`}
+                initial={{ clipPath: 'inset(0 0 100% 0)' }}
+                animate={{ clipPath: 'inset(0 0 0% 0)', transition: unroll }}
+                exit={{ clipPath: 'inset(0 0 100% 0)', transition: rollup }}
+              >
+                <motion.div
+                  className="sheet-body"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, transition: { delay: 0.85, duration: 0.4 } }}
+                  exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                >
+                  <p className="sheet-count">
+                    CHAPTER {chapter.number} · {String(idx + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+                  </p>
+                  <h3>{s.heading}</h3>
+                  {s.image && <img src={imgUrl(s.image)} alt="" />}
+                  <p>{s.body}</p>
+                  {s.points && (
+                    <ul>
+                      {s.points.map((pt, j) => (
+                        <li key={j}>{pt}</li>
+                      ))}
+                    </ul>
+                  )}
+                </motion.div>
+              </motion.div>
+              <motion.div
+                className="roll"
+                initial={{ top: '0%' }}
+                animate={{ top: '100%', transition: unroll }}
+                exit={{ top: '0%', transition: rollup }}
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </motion.article>
+        <div className="scroll-controls">
+          <button onClick={() => go(-1)} disabled={idx === 0} aria-label="이전 장">
+            <Arrow />
+          </button>
+          <span>
+            {idx + 1} / {total}
+          </span>
+          <button onClick={() => go(1)} disabled={idx === total - 1} aria-label="다음 장">
+            <Arrow />
+          </button>
+        </div>
+        <button className="next-chapter" onClick={onNext}>
+          {nextLabel}
+        </button>
+      </div>
     </motion.div>
+  )
+}
+
+function Walkers({ walkers }: { walkers: NonNullable<Chapter['walkers']> }) {
+  const walk = 3.4
+  return (
+    <>
+      {walkers.map((w, i) => (
+        <motion.div
+          key={w.src}
+          className="walker"
+          style={{ left: `${(w.x / IMG_W) * 100}%`, top: `${(w.y / IMG_H) * 100}%`, width: `${(w.w / IMG_W) * 100}%` }}
+          initial={{ x: '75vw' }}
+          animate={{ x: 0 }}
+          transition={{ delay: 0.5 + i * 0.35, duration: walk, ease: [0.1, 0.4, 0.4, 1] }}
+        >
+          <motion.img
+            src={imgUrl(w.src)}
+            alt=""
+            animate={{ y: [0, -5, 0, -5, 0], rotate: [0, -2, 0, 2, 0] }}
+            transition={{ delay: 0.5 + i * 0.35, duration: 0.7, repeat: Math.round(walk / 0.7) - 1, ease: 'linear' }}
+          />
+        </motion.div>
+      ))}
+    </>
   )
 }
 
@@ -130,14 +204,12 @@ function ChapterScreen({
   const t = chapter.theme
   return (
     <motion.section
-      className="chapter"
+      className={chapter.image ? 'chapter has-image' : 'chapter'}
       style={
         {
           '--bg': t.bg,
-          '--band': t.band,
           '--accent': t.accent,
           '--ink': t.ink,
-          backgroundImage: chapter.image ? `url(${imgUrl(chapter.image)})` : undefined,
         } as CSSProperties
       }
       initial={{ clipPath: 'polygon(0 0, 0 0, -30% 100%, -30% 100%)' }}
@@ -145,12 +217,18 @@ function ChapterScreen({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.9, ease: [0.7, 0, 0.2, 1] }}
     >
+      {chapter.image && (
+        <div className="chapter-scene">
+          <img className="scene-img" src={imgUrl(chapter.image)} alt="" />
+          {chapter.walkers && <Walkers walkers={chapter.walkers} />}
+        </div>
+      )}
       <div className="chapter-tint" />
-      <div className="band band-top" />
-      <div className="band band-bottom" />
-      <div className="chapter-numeral" aria-hidden="true">
-        {chapter.number}
-      </div>
+      {!chapter.image && (
+        <div className="chapter-numeral" aria-hidden="true">
+          {chapter.number}
+        </div>
+      )}
       <div className="chapter-center">
         <motion.p
           className="chapter-label"
@@ -396,7 +474,17 @@ export default function App() {
 
       <AnimatePresence>
         {exploring && phase === 'chapter' && (
-          <ExplorePanel key="explore" chapter={chapters[current]} onClose={() => setExploring(false)} />
+          <ExploreScroll
+            key={`explore-${current}`}
+            chapter={chapters[current]}
+            onClose={() => setExploring(false)}
+            nextLabel={current < chapters.length - 1 ? 'Next chapter' : allDone ? '선물 받으러 가기' : '닫기'}
+            onNext={() => {
+              if (current < chapters.length - 1) void goToChapter(current + 1)
+              else if (allDone) void goToGift()
+              else setExploring(false)
+            }}
+          />
         )}
       </AnimatePresence>
 
