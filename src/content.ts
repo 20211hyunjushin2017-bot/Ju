@@ -13,8 +13,6 @@ export type Chapter = {
   number: string
   title: string
   subtitle: string
-  // 오른쪽 아래 자막 상자에 나오는 문장
-  caption: string
   // bg: 배경색, accent: 펼쳐지는 종이의 제목 색, ink: 챕터 제목 글자색
   theme: { bg: string; accent: string; ink: string }
   // 챕터 배경 이미지 (없으면 단색 배경). 1672×941 비율 기준
@@ -29,7 +27,6 @@ export const site = {
   badgeBottom: 'JOURNEY',
   badgeSub: 'MY OJT LOG',
   ticket: { top: 'THE', title: ['OCEAN', 'JOURNEY'], bottom: 'BEGINS' },
-  ticketNote: '모든 챕터를 둘러보면 특별한 선물이 기다리고 있어요.',
   soundHint: '소리를 켜면 더 생생하게 즐길 수 있어요.',
   introCaptions: [
     '하나의 여정, 세 개의 정거장.',
@@ -66,7 +63,6 @@ export const chapters: Chapter[] = [
     number: '01',
     title: '오션Way 2.0 & AX',
     subtitle: '[챕터 1 한 줄 소개]',
-    caption: '[챕터 1 자막 문장]',
     theme: { bg: '#05060a', accent: '#16324a', ink: '#e6d6b4' },
     image: 'ch1-bg.webp',
     walkers: [
@@ -80,7 +76,6 @@ export const chapters: Chapter[] = [
     number: '02',
     title: '직무 교육과 교육 운영',
     subtitle: '[챕터 2 한 줄 소개]',
-    caption: '[챕터 2 자막 문장]',
     theme: { bg: '#1f4a45', accent: '#1f4a45', ink: '#f3ead8' },
     sections: placeholder('직무 교육과 교육 운영'),
   },
@@ -88,7 +83,6 @@ export const chapters: Chapter[] = [
     number: '03',
     title: 'HPSI',
     subtitle: '[챕터 3 한 줄 소개]',
-    caption: '[챕터 3 자막 문장]',
     theme: { bg: '#6b3a2e', accent: '#6b3a2e', ink: '#f6ecdc' },
     sections: placeholder('HPSI'),
   },

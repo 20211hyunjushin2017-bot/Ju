@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { chapters, site, type Chapter } from './content'
 import { TrainScene, type TrainHandle } from './TrainScene'
@@ -204,18 +204,53 @@ function Walkers({ walkers }: { walkers: NonNullable<Chapter['walkers']> }) {
   )
 }
 
+// 글자마다 조금씩 다른 각도·위치로 떨리는 손그림 느낌의 제목
+const hashRand = (seed: number) => {
+  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453
+  return (x - Math.floor(x)) * 2 - 1
+}
+
+function BoilText({ text }: { text: string }) {
+  const words = useMemo(() => {
+    const vars = ['--r1', '--r2', '--r3', '--x1', '--y1', '--x2', '--y2', '--x3', '--y3']
+    const scale = [2.4, 2.4, 2.4, 0.025, 0.03, 0.025, 0.03, 0.025, 0.03]
+    const unit = ['deg', 'deg', 'deg', 'em', 'em', 'em', 'em', 'em', 'em']
+    return text.split(' ').map((w, wi) =>
+      Array.from(w).map((ch, j) => {
+        const i = wi * 50 + j
+        const style = Object.fromEntries(
+          vars.map((v, k) => [v, `${hashRand(i * 9 + k + text.length * 31) * scale[k]}${unit[k]}`]),
+        ) as CSSProperties
+        return { ch, style }
+      }),
+    )
+  }, [text])
+  return (
+    <span aria-label={text}>
+      {words.map((w, i) => (
+        <span key={i} aria-hidden="true">
+          {i > 0 && ' '}
+          <span className="boil-word">
+            {w.map((c, j) => (
+              <span key={j} className="boil" style={c.style}>
+                {c.ch}
+              </span>
+            ))}
+          </span>
+        </span>
+      ))}
+    </span>
+  )
+}
+
 function ChapterScreen({
   chapter,
   explored,
   onExplore,
-  showCaption,
-  onToggleCaption,
 }: {
   chapter: Chapter
   explored: boolean
   onExplore: () => void
-  showCaption: boolean
-  onToggleCaption: () => void
 }) {
   const t = chapter.theme
   return (
@@ -252,7 +287,7 @@ function ChapterScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          CHAPTER {chapter.number}
+          <BoilText text={`CHAPTER ${chapter.number}`} />
         </motion.p>
         <motion.h2
           className="chapter-title"
@@ -260,7 +295,7 @@ function ChapterScreen({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.75, duration: 0.6 }}
         >
-          {chapter.title}
+          <BoilText text={chapter.title} />
         </motion.h2>
         <motion.p
           className="chapter-sub"
@@ -281,12 +316,6 @@ function ChapterScreen({
           {explored ? 'EXPLORE AGAIN' : 'EXPLORE'} <Arrow />
         </motion.button>
       </div>
-      <div className="cc-box">
-        {showCaption && <p>{chapter.caption}</p>}
-        <button className={showCaption ? 'cc on' : 'cc'} onClick={onToggleCaption} aria-pressed={showCaption}>
-          CC
-        </button>
-      </div>
     </motion.section>
   )
 }
@@ -300,9 +329,7 @@ export default function App() {
   const [isIntro, setIsIntro] = useState(false)
   const [exploring, setExploring] = useState(false)
   const [explored, setExplored] = useState<Set<number>>(new Set())
-  const [menuOpen, setMenuOpen] = useState(false)
   const [sound, setSound] = useState(false)
-  const [showCaption, setShowCaption] = useState(true)
   const [toast, setToast] = useState(false)
   const allDone = explored.size === chapters.length
 
@@ -313,7 +340,6 @@ export default function App() {
   }
 
   const ride = useCallback(async (lines: string[], tiles: number, ms: number, intro = false) => {
-    setMenuOpen(false)
     setExploring(false)
     setRideLines(lines)
     setRideMs(ms)
@@ -325,7 +351,7 @@ export default function App() {
   const goToChapter = useCallback(
     async (i: number) => {
       const c = chapters[i]
-      await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 2, 4000)
+      await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 2, 5000)
       setCurrent(i)
       setPhase('chapter')
     },
@@ -333,14 +359,14 @@ export default function App() {
   )
 
   const start = async () => {
-    await ride(site.introCaptions, 6, 10000, true)
+    await ride(site.introCaptions, 2, 6000, true)
     setCurrent(0)
     setPhase('chapter')
   }
 
   const goToGift = async () => {
     setToast(false)
-    await ride(['종착역에 도착합니다', '선물이 기다리고 있어요'], 4, 5000)
+    await ride(['종착역에 도착합니다', '선물이 기다리고 있어요'], 2, 5000)
     setPhase('gift')
   }
 
@@ -374,8 +400,6 @@ export default function App() {
             chapter={chapters[current]}
             explored={explored.has(current)}
             onExplore={openExplore}
-            showCaption={showCaption}
-            onToggleCaption={() => setShowCaption(!showCaption)}
           />
         )}
       </AnimatePresence>
@@ -389,7 +413,7 @@ export default function App() {
             transition={{ duration: 0.6 }}
           >
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              <Ticket {...site.ticket} note={site.ticketNote} />
+              <Ticket {...site.ticket} />
             </motion.div>
             <motion.button
               className="start-btn"
@@ -458,12 +482,6 @@ export default function App() {
             <span className="badge-sub">{site.badgeSub}</span>
           </div>
 
-          <button className="menu-btn" onClick={() => setMenuOpen(true)} aria-label="챕터 메뉴 열기">
-            <span />
-            <span />
-            <span />
-          </button>
-
           {phase === 'chapter' && (
             <nav className="chapter-nav" aria-label="챕터 이동">
               <button disabled={current === 0} onClick={() => void goToChapter(current - 1)} aria-label="이전 챕터">
@@ -484,10 +502,6 @@ export default function App() {
         </>
       )}
 
-      <button className={sound ? 'sound-btn on' : 'sound-btn'} onClick={toggleSound} aria-label="소리 켜기/끄기" aria-pressed={sound}>
-        ♪
-      </button>
-
       <AnimatePresence>
         {exploring && phase === 'chapter' && (
           <ExploreScroll
@@ -501,54 +515,6 @@ export default function App() {
               else setExploring(false)
             }}
           />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            className="menu-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setMenuOpen(false)}
-          >
-            <motion.nav
-              className="menu"
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 260 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button className="close" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">
-                ×
-              </button>
-              <p className="eyebrow">ROUTE MAP</p>
-              <ol className="route">
-                {chapters.map((c, i) => (
-                  <li key={c.number}>
-                    <button onClick={() => void goToChapter(i)}>
-                      <span className="stop" data-done={explored.has(i)} />
-                      <span>
-                        <small>CHAPTER {c.number}</small>
-                        {c.title}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-                <li>
-                  <button disabled={!allDone} onClick={goToGift}>
-                    <span className="stop gift" data-done={allDone} />
-                    <span>
-                      <small>FINAL STOP</small>
-                      {allDone ? '선물 받기' : `선물 (${explored.size}/${chapters.length} 챕터 완료)`}
-                    </span>
-                  </button>
-                </li>
-              </ol>
-            </motion.nav>
-          </motion.div>
         )}
       </AnimatePresence>
 

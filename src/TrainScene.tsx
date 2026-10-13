@@ -18,15 +18,16 @@ export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean 
   const polesRef = useRef<HTMLDivElement>(null)
   const active = useRef<{ raf: number; finish: () => void } | null>(null)
 
-  function paint(p: number, v: number, t: number) {
+  // v: 0~1 (정차~순항), tps: 순항 속도 (창문 너비/초)
+  function paint(p: number, v: number, t: number, tps = 0) {
     const shift = `translate3d(${(-p * 100) / STRIP_TILES}%,0,0)`
     sharpRef.current!.style.transform = shift
     blurStripRef.current!.style.transform = shift
-    const blur = Math.min(1, v * 2.2)
+    const blur = Math.min(1, Math.max(0, (v * tps - 0.12) / 0.55))
     blurRef.current!.style.opacity = String(blur * blur * (3 - 2 * blur))
     const poleFrac = ((p * 2.3) / 0.6) % 1
     polesRef.current!.style.transform = `translate3d(${-poleFrac * 25}%,0,0)`
-    polesRef.current!.style.opacity = String(Math.max(0, v - 0.25) * 0.9)
+    polesRef.current!.style.opacity = String(Math.max(0, v - 0.25) * Math.min(1, tps / 0.6) * 0.9)
     const shake = Math.sin(t * 0.045) * 1.4 * v + Math.sin(t * 0.13) * 0.5 * v
     sceneRef.current!.style.transform = `translate(-50%, calc(-50% + ${shake}px))`
     setTrainSpeed(v)
@@ -70,7 +71,7 @@ export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean 
             p = 0.5 * vmax * a + vmax * (ms - d - a) + vmax * tc - (0.5 * vmax * tc * tc) / d
             v = 1 - tc / d
           }
-          paint(p, v, t)
+          paint(p, v, t, vmax * 1000)
           active.current!.raf = requestAnimationFrame(tick)
         }
         active.current = { raf: requestAnimationFrame(tick), finish }
@@ -81,16 +82,10 @@ export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean 
     },
   }))
 
-  const tiles = (name: string) =>
+  // 홀수 칸은 좌우 반전된 풍경 (반전 시 글자가 뒤집혀 보이지 않도록 로고를 지운 이미지)
+  const tiles = (name: string, mirror: string) =>
     Array.from({ length: STRIP_TILES }, (_, i) => (
-      <div
-        key={i}
-        className="tile"
-        style={{
-          backgroundImage: `url(${img(name)})`,
-          transform: i % 2 ? 'scaleX(-1)' : undefined,
-        }}
-      />
+      <div key={i} className="tile" style={{ backgroundImage: `url(${img(i % 2 ? mirror : name)})` }} />
     ))
 
   return (
@@ -99,11 +94,11 @@ export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean 
         <img className="scene-img" src={img('train.webp')} alt="" />
         <div className="window">
           <div className="strip" ref={sharpRef}>
-            {tiles('view.webp')}
+            {tiles('view.webp', 'view-mirror.webp')}
           </div>
           <div className="window-blur" ref={blurRef}>
             <div className="strip" ref={blurStripRef}>
-              {tiles('view-blur.webp')}
+              {tiles('view-blur.webp', 'view-mirror-blur.webp')}
             </div>
           </div>
           <div className="poles" ref={polesRef} />

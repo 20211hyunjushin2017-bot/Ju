@@ -184,13 +184,6 @@
   transform: translateX(9%);
 }
 
-.ticket-note {
-  margin: 20px 0 0;
-  font-weight: 500;
-  font-size: clamp(13px, 1.5vw, 16px);
-  opacity: 0.9;
-}
-
 .start-btn {
   border: none;
   padding: 14px 52px;
@@ -296,54 +289,6 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.18em;
-}
-
-.menu-btn {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  z-index: 20;
-  width: 84px;
-  height: 46px;
-  border: none;
-  border-radius: 50%;
-  background: #c9a46a radial-gradient(ellipse at 40% 30%, #e6c48c, #a77d45);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.menu-btn span {
-  width: 22px;
-  height: 3px;
-  border-radius: 2px;
-  background: #5b3a17;
-}
-
-.sound-btn {
-  position: absolute;
-  left: 18px;
-  bottom: 18px;
-  z-index: 20;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: none;
-  background: #c9a46a radial-gradient(ellipse at 40% 30%, #e6c48c, #a77d45);
-  color: #5b3a17;
-  font-size: 22px;
-  opacity: 0.75;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
-}
-
-.sound-btn.on {
-  opacity: 1;
-  box-shadow:
-    0 0 0 3px rgba(242, 182, 109, 0.6),
-    0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
 .close {
@@ -484,40 +429,6 @@
   font-weight: 800;
   font-size: clamp(18px, 2.2vw, 26px);
   color: var(--ink);
-}
-
-.cc-box {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  width: min(320px, 70vw);
-  padding: 18px 18px 14px;
-  background: var(--paper);
-  color: var(--ink-dark);
-  border-top-left-radius: 6px;
-  box-shadow: -6px -6px 20px rgba(0, 0, 0, 0.25);
-  text-align: center;
-}
-
-.cc-box p {
-  margin: 0 0 12px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.cc {
-  padding: 6px 18px;
-  border-radius: 50%;
-  border: none;
-  background: #d9c29a;
-  color: #5b3a17;
-  font-weight: 800;
-  opacity: 0.6;
-}
-
-.cc.on {
-  opacity: 1;
 }
 
 .chapter-nav {
@@ -748,86 +659,6 @@
 }
 
 /* ---------- 메뉴 ---------- */
-.menu {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(380px, 88vw);
-  padding: 28px;
-  background: var(--paper);
-  color: var(--ink-dark);
-  overflow-y: auto;
-}
-
-.menu .close {
-  float: right;
-}
-
-.route {
-  list-style: none;
-  margin: 24px 0 0;
-  padding: 0;
-  position: relative;
-}
-
-.route::before {
-  content: '';
-  position: absolute;
-  left: 11px;
-  top: 14px;
-  bottom: 30px;
-  border-left: 3px dashed #c8b28a;
-}
-
-.route button {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  width: 100%;
-  padding: 12px 0;
-  border: none;
-  background: none;
-  text-align: left;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.route button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.route small {
-  display: block;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  opacity: 0.6;
-}
-
-.stop {
-  flex: none;
-  width: 25px;
-  height: 25px;
-  margin-top: 4px;
-  border-radius: 50%;
-  border: 3px solid #1b3a55;
-  background: var(--paper);
-}
-
-.stop[data-done='true'] {
-  background: #1b3a55;
-}
-
-.stop.gift {
-  border-color: #e8742c;
-}
-
-.stop.gift[data-done='true'] {
-  background: #e8742c;
-}
-
 /* ---------- 토스트 · 선물 ---------- */
 .toast {
   position: absolute;
@@ -894,23 +725,42 @@
     padding: 8px 12px 6px;
   }
 
-  .menu-btn {
-    top: 16px;
-    right: 16px;
-    width: 64px;
-    height: 38px;
-  }
-
-  .cc-box {
-    display: none;
-  }
-
-  .sound-hint {
+      .sound-hint {
     bottom: 84px;
   }
 
   .chapter-numeral {
     font-size: 60vmin;
     opacity: 0.6;
+  }
+}
+
+/* 손그림처럼 떨리는 제목 글자 */
+.boil-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.boil {
+  display: inline-block;
+  animation: boil 0.66s infinite;
+  animation-timing-function: step-end;
+}
+
+@keyframes boil {
+  0% {
+    transform: translate(var(--x1), var(--y1)) rotate(var(--r1));
+  }
+  33% {
+    transform: translate(var(--x2), var(--y2)) rotate(var(--r2));
+  }
+  66% {
+    transform: translate(var(--x3), var(--y3)) rotate(var(--r3));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boil {
+    animation: none !important;
   }
 }
