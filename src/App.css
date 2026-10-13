@@ -32,10 +32,10 @@
 .window {
   position: absolute;
   left: 20.634%;
-  top: 14.346%;
-  width: 58.433%;
-  height: 52.816%;
-  border-radius: 3.7% / 7.2%;
+  top: 14.134%;
+  width: 58.971%;
+  height: 52.604%;
+  border-radius: 4% / 8%;
   overflow: hidden;
   isolation: isolate;
 }
@@ -184,6 +184,17 @@
   transform: translateX(9%);
 }
 
+.ticket-byline {
+  position: absolute;
+  left: clamp(26px, 3.5vw, 44px);
+  bottom: clamp(12px, 2vw, 18px);
+  margin: 0;
+  font-size: clamp(10px, 1.1vw, 12px);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0.75;
+}
+
 .start-btn {
   border: none;
   padding: 14px 52px;
@@ -195,25 +206,6 @@
   box-shadow:
     0 0 0 4px rgba(243, 234, 216, 0.35),
     0 10px 24px rgba(0, 0, 0, 0.35);
-}
-
-.sound-hint {
-  position: absolute;
-  bottom: clamp(20px, 5vh, 44px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  background: none;
-  font-weight: 700;
-  font-size: clamp(14px, 1.8vw, 20px);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-}
-
-.sound-hint svg {
-  width: 24px;
-  height: 24px;
 }
 
 /* ---------- 주행 중 ---------- */
@@ -498,19 +490,19 @@
 
 .scroll-rig {
   position: relative;
-  width: min(760px, calc(100vw - 32px));
+  width: min(980px, calc(100vw - 32px));
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: clamp(56px, 9vh, 90px);
+  padding-top: clamp(20px, 4vh, 40px);
 }
 
 .sheet-area {
   position: relative;
-  width: min(100%, calc(min(66vh, 640px) * 0.76));
-  aspect-ratio: 0.76;
-  max-width: 100%;
+  width: 100%;
+  height: calc(100% - 150px);
+  min-height: 360px;
 }
 
 .sheet-wrap {
@@ -519,8 +511,20 @@
 }
 
 .sheet-clip {
+  /* 말린 모서리 영역 크기: 종이가 커져도 모서리는 자연스러운 크기로 유지 */
+  --cw: min(64%, 380px);
+  --ch: min(34%, 210px);
   position: absolute;
   inset: 0;
+}
+
+.curl-corner {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--cw);
+  height: var(--ch);
+  pointer-events: none;
 }
 
 /* 흰 종이: 오른쪽 아래 모서리가 살짝 말려 올라간 모양 */
@@ -532,16 +536,16 @@
   background:
     radial-gradient(ellipse 70% 45% at 100% 100%, rgba(0, 0, 0, 0.13), transparent 70%),
     linear-gradient(165deg, #ffffff 55%, #f1f1f1 100%);
-  border-radius: 0 0 72% 0 / 0 0 34% 0;
+  border-bottom-right-radius: var(--cw) var(--ch);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
 }
 
 .curl-shadow {
   position: absolute;
-  right: -1%;
-  bottom: 10%;
-  width: 10%;
-  height: 26%;
+  right: -2%;
+  bottom: 28%;
+  width: 14%;
+  height: 72%;
   border-radius: 0 0 60% 0 / 0 0 60% 0;
   background: rgba(0, 0, 0, 0.42);
   filter: blur(12px);
@@ -549,17 +553,15 @@
 
 .curl {
   position: absolute;
-  left: 68%;
-  top: 78%;
-  width: 27%;
-  height: 17%;
+  left: 55.6%;
+  top: 35.3%;
+  width: 37.5%;
+  height: 50%;
   background: linear-gradient(125deg, #b9b9b9 0%, #dedede 35%, #f7f7f7 65%, #ffffff 100%);
   clip-path: polygon(7.4% 44.1%, 29.6% 23.5%, 59.3% 11.8%, 91.5% 17.1%, 82.8% 29.4%, 72.9% 41.3%, 62.0% 52.5%, 50.0% 63.2%, 37.1% 73.3%, 23.3% 82.6%, 13.0% 64.7%);
 }
 
 .curl-wrap {
-  position: absolute;
-  inset: 0;
   filter: drop-shadow(-4px 6px 6px rgba(0, 0, 0, 0.35));
   pointer-events: none;
 }
@@ -567,7 +569,7 @@
 .sheet-body {
   height: 100%;
   overflow-y: auto;
-  padding: clamp(32px, 6vh, 52px) clamp(22px, 4vw, 44px) 28%;
+  padding: clamp(32px, 6vh, 56px) clamp(22px, 5vw, 64px) clamp(90px, 18%, 160px);
 }
 
 .sheet-count {
@@ -621,7 +623,7 @@
 }
 
 .scroll-controls {
-  margin-top: 30px;
+  margin-top: 22px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -719,15 +721,17 @@
 }
 
 @media (max-width: 640px) {
+  .ticket {
+    padding-bottom: 46px;
+  }
+
   .badge {
     top: 14px;
     left: 14px;
     padding: 8px 12px 6px;
   }
 
-      .sound-hint {
-    bottom: 84px;
-  }
+    
 
   .chapter-numeral {
     font-size: 60vmin;

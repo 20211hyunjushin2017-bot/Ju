@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { AnimatePresence, motion } from 'motion/react'
 import { chapters, site, type Chapter } from './content'
 import { TrainScene, type TrainHandle } from './TrainScene'
-import { soundOff, soundOn } from './sound'
+import { soundOn } from './sound'
 import './App.css'
 
 type Phase = 'landing' | 'ride' | 'chapter' | 'gift'
 
 const imgUrl = (name: string) => `${import.meta.env.BASE_URL}images/${name}`
 
-function Ticket({ top, title, bottom, note }: { top: string; title: string[]; bottom: string; note?: string }) {
+function Ticket({ top, title, bottom, byline }: { top: string; title: string[]; bottom: string; byline?: string }) {
   return (
     <div className="ticket-wrap">
       <div className="ticket-back" />
@@ -20,7 +20,7 @@ function Ticket({ top, title, bottom, note }: { top: string; title: string[]; bo
           <span className="indent">{title[1]}</span>
         </h1>
         <p className="ticket-small">{bottom}</p>
-        {note && <p className="ticket-note">{note}</p>}
+        {byline && <p className="ticket-byline">{byline}</p>}
       </div>
     </div>
   )
@@ -119,7 +119,9 @@ function ExploreScroll({
                   transition: { ...rollup, times: [0, 0.001, 1] },
                 }}
               >
-                <div className="curl-shadow" />
+                <div className="curl-corner">
+                  <div className="curl-shadow" />
+                </div>
                 <div className="sheet">
                 <motion.div
                   className="sheet-body"
@@ -143,7 +145,7 @@ function ExploreScroll({
                 </motion.div>
                 </div>
                 <motion.div
-                  className="curl-wrap"
+                  className="curl-corner curl-wrap"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, transition: { delay: 0.95, duration: 0.35 } }}
                   exit={{ opacity: 0, transition: { duration: 0.1 } }}
@@ -329,16 +331,8 @@ export default function App() {
   const [isIntro, setIsIntro] = useState(false)
   const [exploring, setExploring] = useState(false)
   const [explored, setExplored] = useState<Set<number>>(new Set())
-  const [sound, setSound] = useState(false)
   const [toast, setToast] = useState(false)
   const allDone = explored.size === chapters.length
-
-  const toggleSound = () => {
-    if (sound) soundOff()
-    else soundOn()
-    setSound(!sound)
-  }
-
   const ride = useCallback(async (lines: string[], tiles: number, ms: number, intro = false) => {
     setExploring(false)
     setRideLines(lines)
@@ -359,6 +353,8 @@ export default function App() {
   )
 
   const start = async () => {
+    // 첫 클릭 때 오디오를 켜 두면, 기차가 달릴 때만 소리가 납니다
+    soundOn()
     await ride(site.introCaptions, 2, 6000, true)
     setCurrent(0)
     setPhase('chapter')
@@ -413,7 +409,7 @@ export default function App() {
             transition={{ duration: 0.6 }}
           >
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              <Ticket {...site.ticket} />
+              <Ticket {...site.ticket} byline={site.byline} />
             </motion.div>
             <motion.button
               className="start-btn"
@@ -426,18 +422,6 @@ export default function App() {
             >
               Start now
             </motion.button>
-            <button className="sound-hint" onClick={toggleSound} aria-pressed={sound}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M4 15v-3a8 8 0 0 1 16 0v3M4 15h3v5H4zM17 15h3v5h-3z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              {sound ? '소리가 켜져 있어요' : site.soundHint}
-            </button>
           </motion.div>
         )}
 

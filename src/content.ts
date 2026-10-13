@@ -27,7 +27,7 @@ export const site = {
   badgeBottom: 'JOURNEY',
   badgeSub: 'MY OJT LOG',
   ticket: { top: 'THE', title: ['OCEAN', 'JOURNEY'], bottom: 'BEGINS' },
-  soundHint: '소리를 켜면 더 생생하게 즐길 수 있어요.',
+  byline: 'by. 기업문화혁신팀 신현주 사원',
   introCaptions: [
     '하나의 여정, 세 개의 정거장.',
     '한화오션에 입사한 날부터 지금까지,',

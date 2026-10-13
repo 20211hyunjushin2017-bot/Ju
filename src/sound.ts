@@ -1,4 +1,5 @@
 // 음원 파일 없이 Web Audio로 만든 기차 주행음 (낮은 진동음 + 레일 이음새 소리)
+// 기차가 멈춰 있을 때(speed 0)는 소리가 나지 않습니다
 
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
@@ -66,7 +67,7 @@ export function soundOn() {
     lp.type = 'lowpass'
     lp.frequency.value = 220
     rumble = ctx.createGain()
-    rumble.gain.value = 0.15
+    rumble.gain.value = 0
     src.connect(lp).connect(rumble).connect(master)
     src.start()
   }
@@ -85,5 +86,5 @@ export function soundOff() {
 // 0(정차) ~ 1(최고 속도)
 export function setTrainSpeed(v: number) {
   speed = v
-  if (ctx && rumble) rumble.gain.setTargetAtTime(0.15 + v * 0.5, ctx.currentTime, 0.1)
+  if (ctx && rumble) rumble.gain.setTargetAtTime(v * 0.6, ctx.currentTime, 0.15)
 }
