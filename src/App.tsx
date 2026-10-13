@@ -104,16 +104,23 @@ function ExploreScroll({
         ×
       </button>
       <div className="scroll-rig">
-        <div className="rod" />
         <div className="sheet-area">
           <AnimatePresence mode="wait">
             <motion.div key={idx} className="sheet-wrap">
               <motion.div
-                className={`sheet tone-${idx % 3}`}
-                initial={{ clipPath: 'inset(0 0 100% 0)' }}
-                animate={{ clipPath: 'inset(0 0 0% 0)', transition: unroll }}
-                exit={{ clipPath: 'inset(0 0 100% 0)', transition: rollup }}
+                className="sheet-clip"
+                initial={{ clipPath: 'inset(-10% -12% 100% -12%)' }}
+                animate={{
+                  clipPath: ['inset(-10% -12% 100% -12%)', 'inset(-10% -12% 0% -12%)', 'inset(-10% -12% -14% -12%)'],
+                  transition: { ...unroll, times: [0, 0.999, 1] },
+                }}
+                exit={{
+                  clipPath: ['inset(-10% -12% -14% -12%)', 'inset(-10% -12% 0% -12%)', 'inset(-10% -12% 100% -12%)'],
+                  transition: { ...rollup, times: [0, 0.001, 1] },
+                }}
               >
+                <div className="curl-shadow" />
+                <div className="sheet">
                 <motion.div
                   className="sheet-body"
                   initial={{ opacity: 0 }}
@@ -134,12 +141,21 @@ function ExploreScroll({
                     </ul>
                   )}
                 </motion.div>
+                </div>
+                <motion.div
+                  className="curl-wrap"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, transition: { delay: 0.95, duration: 0.35 } }}
+                  exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                >
+                  <div className="curl" />
+                </motion.div>
               </motion.div>
               <motion.div
                 className="roll"
-                initial={{ top: '0%' }}
-                animate={{ top: '100%', transition: unroll }}
-                exit={{ top: '0%', transition: rollup }}
+                initial={{ top: '0%', opacity: 1 }}
+                animate={{ top: '100%', opacity: [1, 1, 0], transition: { ...unroll, opacity: { duration: 1.25, times: [0, 0.85, 1] } } }}
+                exit={{ top: '0%', opacity: [0, 1, 1], transition: { ...rollup, opacity: { duration: 0.7, times: [0, 0.12, 1] } } }}
               />
             </motion.div>
           </AnimatePresence>
@@ -309,7 +325,7 @@ export default function App() {
   const goToChapter = useCallback(
     async (i: number) => {
       const c = chapters[i]
-      await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 4, 3400)
+      await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 2, 4000)
       setCurrent(i)
       setPhase('chapter')
     },
@@ -317,14 +333,14 @@ export default function App() {
   )
 
   const start = async () => {
-    await ride(site.introCaptions, 12, 9000, true)
+    await ride(site.introCaptions, 6, 10000, true)
     setCurrent(0)
     setPhase('chapter')
   }
 
   const goToGift = async () => {
     setToast(false)
-    await ride(['종착역에 도착합니다', '선물이 기다리고 있어요'], 6, 4200)
+    await ride(['종착역에 도착합니다', '선물이 기다리고 있어요'], 4, 5000)
     setPhase('gift')
   }
 
