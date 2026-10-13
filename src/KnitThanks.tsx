@@ -195,7 +195,7 @@ function rasterize(lines: KnitLine[], cols: number, rows: number) {
   return { mask, group, groupCount: gi }
 }
 
-// 뜨개바늘 + 실타래 + 실 (위층 캔버스에 매 프레임 다시 그림)
+// 실타래 + 지금 뜨는 코까지 이어진 실 (위층 캔버스에 매 프레임 다시 그림)
 function drawTools(o: CanvasRenderingContext2D, W: number, H: number, x: number, y: number, alpha: number) {
   o.clearRect(0, 0, W, H)
   if (alpha <= 0) return
@@ -221,22 +221,6 @@ function drawTools(o: CanvasRenderingContext2D, W: number, H: number, x: number,
     o.ellipse(bx, by, 34, 12 + Math.abs(k) * 4, 0.6 + k * 0.35, 0, Math.PI * 2)
     o.stroke()
   }
-  // 뜨개바늘 두 개 (끝이 지금 뜨는 코를 가리킴)
-  const needle = (dx: number, dy: number) => {
-    o.lineCap = 'round'
-    o.strokeStyle = '#c99a5b'
-    o.lineWidth = 5
-    o.beginPath()
-    o.moveTo(x + dx * 0.08, y + dy * 0.08)
-    o.lineTo(x + dx, y + dy)
-    o.stroke()
-    o.fillStyle = '#8a5a2b'
-    o.beginPath()
-    o.arc(x + dx, y + dy, 6, 0, Math.PI * 2)
-    o.fill()
-  }
-  needle(62, -70)
-  needle(-48, -78)
   o.globalAlpha = 1
 }
 
@@ -311,7 +295,12 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
       const perGroup = reduced ? 0 : 190
       const stitchMs = reduced ? 1 : 220
       const members: number[][] = Array.from({ length: groupCount }, () => [])
-      for (let i = 0; i < mask.length; i++) if (mask[i] && group[i] >= 0) members[group[i]].push(i)
+      // 반짝이(3)는 뜨지 않고, 글자를 다 뜬 뒤 한 번에 나타남
+      const sparkCells: number[] = []
+      for (let i = 0; i < mask.length; i++) {
+        if (mask[i] === 3) sparkCells.push(i)
+        else if (mask[i] && group[i] >= 0) members[group[i]].push(i)
+      }
       const timed: { idx: number; at: number }[] = []
       members.forEach((cells, gi) => {
         const byRow = new Map<number, number[]>()
@@ -353,7 +342,16 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
           current = i
         }
         const remaining = done.indexOf(0) !== -1
-        if (!remaining && !finishedAt) finishedAt = t
+        if (!remaining && !finishedAt) {
+          finishedAt = t
+          for (const idx of sparkCells) {
+            const col = idx % cols
+            const row = (idx - col) / cols
+            draw(bgOf(idx), col, row)
+            draw(lefts[3], col, row)
+            draw(rights[3], col, row)
+          }
+        }
         if (current >= 0 && !reduced) {
           const idx = order[current]
           const col = idx % cols
