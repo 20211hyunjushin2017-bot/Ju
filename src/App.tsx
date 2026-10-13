@@ -372,19 +372,29 @@ export default function App() {
   const [isIntro, setIsIntro] = useState(false)
   const [exploring, setExploring] = useState(false)
   const [explored, setExplored] = useState<Set<number>>(new Set())
+  const [menuOpen, setMenuOpen] = useState(false)
+  // 이동 중에 메뉴로 다른 곳을 고르면, 앞서 시작한 이동은 도착해도 화면을 바꾸지 않음
+  const navId = useRef(0)
+
+  // 도착했을 때 이 이동이 여전히 마지막으로 고른 이동이면 true
   const ride = useCallback(async (lines: string[], tiles: number, ms: number, intro = false) => {
+    const id = ++navId.current
     setExploring(false)
+    setMenuOpen(false)
     setRideLines(lines)
     setRideMs(ms)
     setIsIntro(intro)
     setPhase('ride')
     await train.current!.ride(tiles, ms)
+    return id === navId.current
   }, [])
 
   const goToChapter = useCallback(
     async (i: number) => {
+      // 메뉴에서 바로 고를 때도 첫 클릭이면 소리를 켤 수 있게
+      soundOn()
       const c = chapters[i]
-      await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 2, 5000)
+      if (!(await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 2, 5000))) return
       setCurrent(i)
       setPhase('chapter')
     },
@@ -394,13 +404,23 @@ export default function App() {
   const start = async () => {
     // 첫 클릭 때 오디오를 켜 두면, 기차가 달릴 때만 소리가 납니다
     soundOn()
-    await ride(site.introCaptions, 2, 6000, true)
+    if (!(await ride(site.introCaptions, 2, 6000, true))) return
     setCurrent(0)
     setPhase('chapter')
   }
 
-  const openLetter = () => {
+  const goToIntro = () => {
+    navId.current++
+    train.current?.skip()
     setExploring(false)
+    setMenuOpen(false)
+    setPhase('landing')
+  }
+
+  const openLetter = () => {
+    navId.current++
+    setExploring(false)
+    setMenuOpen(false)
     setPhase('thanks')
   }
 
@@ -526,6 +546,44 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <div className="menu-wrap">
+        <button
+          className={menuOpen ? 'menu-pill open' : 'menu-pill'}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-expanded={menuOpen}
+          aria-controls="site-menu"
+        >
+          MENU
+        </button>
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.nav
+              id="site-menu"
+              className="menu-panel"
+              aria-label="페이지 이동"
+              initial={{ opacity: 0, y: -8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              transition={{ duration: 0.18 }}
+            >
+              <button className={phase === 'landing' ? 'menu-item on' : 'menu-item'} onClick={goToIntro}>
+                <small>INTRO</small>
+                <span>The Ocean Journey</span>
+              </button>
+              {chapters.map((c, i) => (
+                <button
+                  key={c.number}
+                  className={phase === 'chapter' && current === i ? 'menu-item on' : 'menu-item'}
+                  onClick={() => void goToChapter(i)}
+                >
+                  <small>CHAPTER {c.number}</small>
+                  <span>{c.title}</span>
+                </button>
+              ))}
+            </motion.nav>
+          )}
+        </AnimatePresence>
+      </div>
     </main>
   )
 }

@@ -15,7 +15,8 @@ const HEART = ['.##.##.', '#######', '#######', '.#####.', '..###..', '...#...']
 // 반짝이 모양 (5×5 코)
 const SPARK = ['..#..', '..#..', '#####', '..#..', '..#..']
 
-function stitchSprite(color: string, w: number, h: number, dpr: number) {
+// side: 'both' | 'left' | 'right' — 코의 V자 중 왼쪽/오른쪽 다리만 따로 그릴 수 있음
+function stitchSprite(color: string, w: number, h: number, dpr: number, side: 'both' | 'left' | 'right' = 'both') {
   const c = document.createElement('canvas')
   c.width = Math.ceil(w * dpr)
   c.height = Math.ceil(h * dpr)
@@ -35,8 +36,8 @@ function stitchSprite(color: string, w: number, h: number, dpr: number) {
     g.fill()
     g.restore()
   }
-  leg(w * 0.29, -0.55)
-  leg(w * 0.71, 0.55)
+  if (side !== 'right') leg(w * 0.29, -0.55)
+  if (side !== 'left') leg(w * 0.71, 0.55)
   return c
 }
 
@@ -194,8 +195,54 @@ function rasterize(lines: KnitLine[], cols: number, rows: number) {
   return { mask, group, groupCount: gi }
 }
 
+// 뜨개바늘 + 실타래 + 실 (위층 캔버스에 매 프레임 다시 그림)
+function drawTools(o: CanvasRenderingContext2D, W: number, H: number, x: number, y: number, alpha: number) {
+  o.clearRect(0, 0, W, H)
+  if (alpha <= 0) return
+  o.globalAlpha = alpha
+  const bx = W - 70
+  const by = H - 64
+  // 실
+  o.strokeStyle = YARN_TEXT
+  o.lineWidth = 2
+  o.beginPath()
+  o.moveTo(x, y)
+  o.quadraticCurveTo((x + bx) / 2, Math.max(y, by) + 40, bx - 20, by)
+  o.stroke()
+  // 실타래
+  o.fillStyle = YARN_TEXT
+  o.beginPath()
+  o.arc(bx, by, 34, 0, Math.PI * 2)
+  o.fill()
+  o.strokeStyle = '#cdbf9f'
+  o.lineWidth = 2
+  for (let k = -2; k <= 2; k++) {
+    o.beginPath()
+    o.ellipse(bx, by, 34, 12 + Math.abs(k) * 4, 0.6 + k * 0.35, 0, Math.PI * 2)
+    o.stroke()
+  }
+  // 뜨개바늘 두 개 (끝이 지금 뜨는 코를 가리킴)
+  const needle = (dx: number, dy: number) => {
+    o.lineCap = 'round'
+    o.strokeStyle = '#c99a5b'
+    o.lineWidth = 5
+    o.beginPath()
+    o.moveTo(x + dx * 0.08, y + dy * 0.08)
+    o.lineTo(x + dx, y + dy)
+    o.stroke()
+    o.fillStyle = '#8a5a2b'
+    o.beginPath()
+    o.arc(x + dx, y + dy, 6, 0, Math.PI * 2)
+    o.fill()
+  }
+  needle(62, -70)
+  needle(-48, -78)
+  o.globalAlpha = 1
+}
+
 export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const toolsRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current!
@@ -231,50 +278,91 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
       canvas.style.height = `${H}px`
       const g = canvas.getContext('2d')!
       g.setTransform(dpr, 0, 0, dpr, 0, 0)
+      const tools = toolsRef.current!
+      tools.width = canvas.width
+      tools.height = canvas.height
+      tools.style.width = `${W}px`
+      tools.style.height = `${H}px`
+      const o = tools.getContext('2d')!
+      o.setTransform(dpr, 0, 0, dpr, 0, 0)
 
       const bgSprites = YARN_BG.map((c) => stitchSprite(c, cw, ch, dpr))
-      const sprites = [null, stitchSprite(YARN_TEXT, cw, ch, dpr), stitchSprite(YARN_HEART, cw, ch, dpr), stitchSprite(YARN_SPARK, cw, ch, dpr)]
+      const colors = [YARN_TEXT, YARN_TEXT, YARN_HEART, YARN_SPARK]
+      const lefts = colors.map((c) => stitchSprite(c, cw, ch, dpr, 'left'))
+      const rights = colors.map((c) => stitchSprite(c, cw, ch, dpr, 'right'))
       const { mask, group, groupCount } = rasterize(layout, cols, rows)
 
       const bgOf = (i: number) => bgSprites[(i * 2654435761) % 3 >>> 0]
-      const draw = (s: HTMLCanvasElement, col: number, row: number, alpha = 1) => {
-        g.globalAlpha = alpha
+      const draw = (s: HTMLCanvasElement, col: number, row: number) => {
         g.drawImage(s, col * cw, row * ch, cw, ch)
+      }
+      // 코의 다리를 위에서 아래로 frac만큼만 그림 (실이 내려오며 감기는 느낌)
+      const drawPart = (s: HTMLCanvasElement, col: number, row: number, frac: number) => {
+        if (frac <= 0) return
+        const f = Math.min(1, frac)
+        g.drawImage(s, 0, 0, s.width, s.height * f, col * cw, row * ch, cw, ch * f)
       }
       g.fillStyle = '#132538'
       g.fillRect(0, 0, W, H)
       for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) draw(bgOf(r * cols + c), c, r)
 
-      // 왼쪽 위 글자부터 한 글자씩, 글자 안에서는 위 단부터 떠 내려감
+      // 왼쪽 위 글자부터 한 글자씩. 글자 안에서는 실제 뜨개처럼 아래 단부터 위로, 단마다 방향을 바꿔 가며 한 코씩 뜸
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const perGroup = reduced ? 0 : 150
-      const fade = 140
+      const perGroup = reduced ? 0 : 190
+      const stitchMs = reduced ? 1 : 220
       const members: number[][] = Array.from({ length: groupCount }, () => [])
       for (let i = 0; i < mask.length; i++) if (mask[i] && group[i] >= 0) members[group[i]].push(i)
       const timed: { idx: number; at: number }[] = []
-      members.forEach((cells, g) =>
-        cells.forEach((idx, k) => timed.push({ idx, at: g * perGroup + (k / cells.length) * perGroup * 1.3 })),
-      )
+      members.forEach((cells, gi) => {
+        const byRow = new Map<number, number[]>()
+        for (const idx of cells) {
+          const r = Math.floor(idx / cols)
+          if (!byRow.has(r)) byRow.set(r, [])
+          byRow.get(r)!.push(idx)
+        }
+        const ordered: number[] = []
+        ;[...byRow.keys()]
+          .sort((a, b) => b - a)
+          .forEach((r, k) => {
+            const row = byRow.get(r)!.sort((a, b) => a - b)
+            ordered.push(...(k % 2 ? row.reverse() : row))
+          })
+        ordered.forEach((idx, k) => timed.push({ idx, at: gi * perGroup + (k / ordered.length) * perGroup * 1.15 }))
+      })
       timed.sort((a, b) => a.at - b.at)
       const order = timed.map((o) => o.idx)
       const startAt = timed.map((o) => o.at)
       const done = new Uint8Array(order.length)
+      let current = -1
+      let finishedAt = 0
       const t0 = performance.now()
       const tick = (now: number) => {
         const t = now - t0
         for (let i = 0; i < order.length; i++) {
-          const p = (t - startAt[i]) / fade
+          const p = (t - startAt[i]) / stitchMs
           if (p <= 0) break
           if (done[i]) continue
           const idx = order[i]
           const col = idx % cols
           const row = (idx - col) / cols
           draw(bgOf(idx), col, row)
-          draw(sprites[mask[idx]]!, col, row, Math.min(1, p))
+          // 왼쪽 다리 → 오른쪽 다리 순서로 실이 감기듯 그려짐
+          drawPart(lefts[mask[idx]], col, row, p / 0.55)
+          drawPart(rights[mask[idx]], col, row, (p - 0.45) / 0.55)
           if (p >= 1) done[i] = 1
+          current = i
         }
-        g.globalAlpha = 1
-        if (done.indexOf(0) !== -1) raf = requestAnimationFrame(tick)
+        const remaining = done.indexOf(0) !== -1
+        if (!remaining && !finishedAt) finishedAt = t
+        if (current >= 0 && !reduced) {
+          const idx = order[current]
+          const col = idx % cols
+          const row = (idx - col) / cols
+          const fadeOut = finishedAt ? 1 - (t - finishedAt) / 600 : 1
+          drawTools(o, W, H, col * cw + cw / 2, row * ch + ch / 2, fadeOut)
+        }
+        if (remaining || (finishedAt && t - finishedAt < 650)) raf = requestAnimationFrame(tick)
+        else o.clearRect(0, 0, W, H)
       }
       raf = requestAnimationFrame(tick)
     }
@@ -288,6 +376,7 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
   return (
     <div className="knit-page">
       <canvas ref={canvasRef} className="knit-canvas" aria-hidden="true" />
+      <canvas ref={toolsRef} className="knit-canvas" aria-hidden="true" />
       <h2 className="sr-only">{lines.map((l) => l.text + (l.heart ? ' 🤍' : '')).join(' ')}</h2>
       <button className="knit-replay" onClick={onReplay}>
         처음부터 다시 보기
