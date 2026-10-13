@@ -19,6 +19,8 @@ export type Chapter = {
   image?: string
   // 배경 위를 걸어 들어오는 캐릭터. x, y, w는 배경 이미지(1672×941) 기준 픽셀 위치
   walkers?: { src: string; x: number; y: number; w: number }[]
+  // true면 챕터 화면에 편지봉투 아이콘이 나오고, 누르면 마지막 페이지로 이동
+  letter?: boolean
   sections: Section[]
 }
 
@@ -33,13 +35,12 @@ export const site = {
     '한화오션에 입사한 날부터 지금까지,',
     'OJT를 하며 배운 것들을 함께 둘러볼까요?',
   ],
-  gift: {
-    top: 'THE',
-    title: ['OCEAN', 'JOURNEY'],
-    bottom: 'CONTINUES',
-    message: '[팀원들에게 전하고 싶은 메시지를 입력하세요]',
-    from: '[이름]',
-  },
+  // 마지막 페이지: 뜨개질로 떠지는 감사 문구. size는 글자 높이(코 수)
+  thanks: [
+    { text: 'special thanks to.', font: "'Jacquard 24', serif", size: 24 },
+    { text: '멘토 주영님', font: "'Gowun Batang', serif", size: 16 },
+    { text: '& 기업문화혁신팀', font: "'Gowun Batang', serif", size: 16, heart: true },
+  ],
 }
 
 const placeholder = (topic: string): Section[] => [
@@ -84,6 +85,7 @@ export const chapters: Chapter[] = [
     title: 'HPSI',
     subtitle: '[챕터 3 한 줄 소개]',
     theme: { bg: '#6b3a2e', accent: '#6b3a2e', ink: '#f6ecdc' },
+    letter: true,
     sections: placeholder('HPSI'),
   },
 ]

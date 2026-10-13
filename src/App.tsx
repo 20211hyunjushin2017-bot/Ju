@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { AnimatePresence, motion } from 'motion/react'
 import { chapters, site, type Chapter } from './content'
 import { TrainScene, type TrainHandle } from './TrainScene'
+import { KnitThanks } from './KnitThanks'
 import { soundOn } from './sound'
 import './App.css'
 
-type Phase = 'landing' | 'ride' | 'chapter' | 'gift'
+type Phase = 'landing' | 'ride' | 'chapter' | 'thanks'
 
 const imgUrl = (name: string) => `${import.meta.env.BASE_URL}images/${name}`
 
@@ -30,6 +31,26 @@ function Arrow() {
   return (
     <svg className="arrow" viewBox="0 0 16 22" aria-hidden="true">
       <path d="M3 2l10 9-10 9" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// 빨간 편지봉투 아이콘 (편지지가 살짝 올라온 모양 + 반짝이)
+function LetterIcon() {
+  const ink = '#231f20'
+  const spark = 'M0 -9 C1 -2 2 -1 9 0 C2 1 1 2 0 9 C-1 2 -2 1 -9 0 C-2 -1 -1 -2 0 -9Z'
+  return (
+    <svg className="letter-icon" viewBox="0 0 120 112" aria-hidden="true">
+      <path d={spark} transform="translate(36 14)" fill={ink} />
+      <path d={spark} transform="translate(98 26) scale(.85)" fill={ink} />
+      <path d={spark} transform="translate(14 42) scale(.85)" fill={ink} />
+      <g className="letter-paper">
+        <path d="M60 22 L74 33 H46 Z" fill="#f53333" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+        <path d="M24 56 L33 49 V70 Z M96 56 L87 49 V70 Z" fill="#f53333" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+        <rect x="33" y="33" width="54" height="44" fill="#fff" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+      </g>
+      <path d="M24 56 L60 85 L96 56 V102 a5 5 0 0 1 -5 5 H29 a5 5 0 0 1 -5 -5 Z" fill="#ff4848" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+      <path d="M27 104 L57 73 a4 4 0 0 1 6 0 L93 104" fill="#ff4848" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -234,7 +255,7 @@ function BoilText({ text }: { text: string }) {
           {i > 0 && ' '}
           <span className="boil-word">
             {w.map((c, j) => (
-              <span key={j} className="boil" style={c.style}>
+              <span key={j} className={/[WVY]/.test(c.ch) ? 'boil tight' : 'boil'} style={c.style}>
                 {c.ch}
               </span>
             ))}
@@ -249,10 +270,12 @@ function ChapterScreen({
   chapter,
   explored,
   onExplore,
+  onLetter,
 }: {
   chapter: Chapter
   explored: boolean
   onExplore: () => void
+  onLetter: () => void
 }) {
   const t = chapter.theme
   return (
@@ -318,6 +341,21 @@ function ChapterScreen({
           {explored ? 'EXPLORE AGAIN' : 'EXPLORE'} <Arrow />
         </motion.button>
       </div>
+      {chapter.letter && (
+        <motion.button
+          className="letter-btn"
+          onClick={onLetter}
+          aria-label="마지막 편지 열기"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.4 }}
+          whileHover={{ scale: 1.08, rotate: -3 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <LetterIcon />
+          <span>편지 열기</span>
+        </motion.button>
+      )}
     </motion.section>
   )
 }
@@ -331,8 +369,6 @@ export default function App() {
   const [isIntro, setIsIntro] = useState(false)
   const [exploring, setExploring] = useState(false)
   const [explored, setExplored] = useState<Set<number>>(new Set())
-  const [toast, setToast] = useState(false)
-  const allDone = explored.size === chapters.length
   const ride = useCallback(async (lines: string[], tiles: number, ms: number, intro = false) => {
     setExploring(false)
     setRideLines(lines)
@@ -360,18 +396,15 @@ export default function App() {
     setPhase('chapter')
   }
 
-  const goToGift = async () => {
-    setToast(false)
-    await ride(['종착역에 도착합니다', '선물이 기다리고 있어요'], 2, 5000)
-    setPhase('gift')
+  const openLetter = () => {
+    setExploring(false)
+    setPhase('thanks')
   }
 
   const openExplore = () => {
     setExploring(true)
     if (!explored.has(current)) {
-      const next = new Set(explored).add(current)
-      setExplored(next)
-      if (next.size === chapters.length) setToast(true)
+      setExplored(new Set(explored).add(current))
     }
   }
 
@@ -387,7 +420,7 @@ export default function App() {
 
   return (
     <main className="app">
-      <TrainScene ref={train} dim={phase === 'landing' || phase === 'gift'} />
+      <TrainScene ref={train} dim={phase === 'landing'} />
 
       <AnimatePresence>
         {phase === 'chapter' && (
@@ -396,6 +429,7 @@ export default function App() {
             chapter={chapters[current]}
             explored={explored.has(current)}
             onExplore={openExplore}
+            onLetter={openLetter}
           />
         )}
       </AnimatePresence>
@@ -436,26 +470,14 @@ export default function App() {
           </motion.div>
         )}
 
-        {phase === 'gift' && (
-          <motion.div key="gift" className="center-layer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Ticket {...site.gift} />
-            <motion.div
-              className="gift-letter"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <p>{site.gift.message}</p>
-              <p className="from">— {site.gift.from}</p>
-            </motion.div>
-            <button className="start-btn" onClick={() => void goToChapter(0)}>
-              처음부터 다시 보기
-            </button>
+        {phase === 'thanks' && (
+          <motion.div key="thanks" className="thanks-layer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <KnitThanks lines={site.thanks} onReplay={() => void goToChapter(0)} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {phase !== 'landing' && (
+      {phase !== 'landing' && phase !== 'thanks' && (
         <>
           <div className="badge" aria-label={`${site.badgeTop} ${site.badgeBottom}`}>
             <span className="badge-main">
@@ -492,31 +514,15 @@ export default function App() {
             key={`explore-${current}`}
             chapter={chapters[current]}
             onClose={() => setExploring(false)}
-            nextLabel={current < chapters.length - 1 ? 'Next chapter' : allDone ? '선물 받으러 가기' : '닫기'}
+            nextLabel={current < chapters.length - 1 ? 'Next chapter' : '편지 열기'}
             onNext={() => {
               if (current < chapters.length - 1) void goToChapter(current + 1)
-              else if (allDone) void goToGift()
-              else setExploring(false)
+              else openLetter()
             }}
           />
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {toast && !exploring && (
-          <motion.div
-            className="toast"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-          >
-            <p>모든 챕터를 둘러봤어요! 선물이 도착했습니다.</p>
-            <button onClick={goToGift}>
-              선물 받으러 가기 <Arrow />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   )
 }

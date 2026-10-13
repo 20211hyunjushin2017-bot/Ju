@@ -5,6 +5,7 @@
   --wood: #1a0f08;
   --display: 'Archivo', 'Noto Sans KR', sans-serif;
   --body: 'Noto Sans KR', system-ui, sans-serif;
+  --chapter-font: 'Hahmlet', 'Noto Sans KR', serif;
   font-family: var(--body);
   color: var(--cream);
   background: var(--wood);
