@@ -103,7 +103,8 @@ export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean 
           </div>
           <div className="poles" ref={polesRef} />
         </div>
-        <img className="scene-img latch" src={img('train.webp')} alt="" />
+        {/* 창문 손잡이만 오려낸 이미지 (풍경 위에 고정) */}
+        <img className="latch" src={img('latch.png')} alt="" />
       </div>
       <div className={dim ? 'stage-shade on' : 'stage-shade'} />
     </div>
