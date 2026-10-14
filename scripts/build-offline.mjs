@@ -16,6 +16,8 @@ const families = [
   'Hahmlet:wght@300..700',
   'Jacquard+24',
   'Gowun+Batang:wght@700',
+  'Cormorant+Garamond:ital,wght@0,500;1,500;1,600',
+  'Pinyon+Script',
 ]
 
 function walk(dir) {

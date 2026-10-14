@@ -28,7 +28,6 @@ export const site = {
   badgeTop: 'OCEAN',
   badgeBottom: 'JOURNEY',
   badgeSub: 'MY OJT LOG',
-  ticket: { top: 'THE', title: ['OCEAN', 'JOURNEY'], bottom: 'BEGINS' },
   byline: 'by. 기업문화혁신팀 신현주 사원',
   introCaptions: [
     '하나의 여정, 세 개의 정거장.',

@@ -102,7 +102,7 @@
   opacity: 1;
 }
 
-/* ---------- 티켓 ---------- */
+/* ---------- 첫 화면 ---------- */
 .center-layer {
   position: absolute;
   inset: 0;
@@ -113,92 +113,6 @@
   gap: 18px;
   padding: 16px;
   z-index: 5;
-}
-
-.ticket-wrap {
-  position: relative;
-  width: min(900px, 92vw);
-}
-
-.ticket-back,
-.ticket {
-  --notch: 18px;
-  -webkit-mask:
-    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) top left,
-    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) top right,
-    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) bottom left,
-    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) bottom right;
-  -webkit-mask-size: 51% 51%;
-  -webkit-mask-repeat: no-repeat;
-  mask:
-    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) top left,
-    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) top right,
-    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) bottom left,
-    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) bottom right;
-  mask-size: 51% 51%;
-  mask-repeat: no-repeat;
-}
-
-.ticket-back {
-  position: absolute;
-  inset: 0;
-  background: #0d2131;
-  transform: translate(-3.5%, -6%) rotate(-1.6deg);
-}
-
-.ticket {
-  position: relative;
-  padding: clamp(28px, 5vw, 52px) 24px clamp(24px, 4vw, 40px);
-  text-align: center;
-  background-color: #1b3a55;
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent 0 calc(9% - 1px),
-    rgba(255, 255, 255, 0.05) calc(9% - 1px) 9%
-  );
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
-}
-
-.ticket-small {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(13px, 1.6vw, 18px);
-  letter-spacing: 0.4em;
-  padding-left: 0.4em;
-}
-
-.ticket-title {
-  margin: 10px 0 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: var(--display);
-  font-stretch: 125%;
-  font-weight: 800;
-  font-size: clamp(40px, 8.4vw, 92px);
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-  color: var(--cream);
-  text-shadow: 4px 5px 0 #0b1a26;
-}
-
-.ticket-title span {
-  transform: translateX(-12%);
-}
-
-.ticket-title .indent {
-  transform: translateX(9%);
-}
-
-.ticket-byline {
-  position: absolute;
-  left: clamp(26px, 3.5vw, 44px);
-  bottom: clamp(12px, 2vw, 18px);
-  margin: 0;
-  color: #fff;
-  font-size: clamp(12px, 1.4vw, 15px);
-  font-weight: 500;
-  letter-spacing: 0.02em;
 }
 
 .start-btn:hover,
@@ -698,9 +612,6 @@
 }
 
 @media (max-width: 640px) {
-  .ticket {
-    padding-bottom: 46px;
-  }
 
   .badge {
     top: 14px;
@@ -908,5 +819,157 @@
   .menu-wrap {
     top: 16px;
     right: 16px;
+  }
+}
+
+/* ---------- 첫 화면: whimsical 타이틀 ---------- */
+.landing-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.hero {
+  position: relative;
+  margin-top: -6vh;
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+/* 글씨 뒤로 은은하게 어둡게 깔아 풍경 위에서도 잘 읽히게 */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -18% -14%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(28, 14, 6, 0.55), transparent);
+  pointer-events: none;
+}
+
+.hero-title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Cormorant Garamond', 'Gowun Batang', serif;
+  font-weight: 500;
+  font-size: clamp(46px, 8.6vw, 132px);
+  line-height: 0.92;
+  letter-spacing: 0.005em;
+  color: #fbf6ec;
+  /* 종이를 눌러 찍은 듯한 엠보싱 */
+  text-shadow:
+    0.02em 0.03em 0 rgba(40, 22, 10, 0.45),
+    -0.01em -0.01em 0 rgba(255, 255, 255, 0.35),
+    0 0 0.6em rgba(255, 214, 160, 0.25);
+}
+
+.hero-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.hero-line.l1 {
+  margin-left: -0.35em;
+}
+
+.hero-line.l2 {
+  padding-left: 1.05em;
+}
+
+.hero-line.l3 {
+  display: flex;
+  align-items: center;
+  gap: 0.28em;
+  padding-left: 1.25em;
+  font-style: italic;
+}
+
+.swash {
+  font-family: 'Pinyon Script', 'Cormorant Garamond', cursive;
+  font-weight: 400;
+  font-size: 1.85em;
+  line-height: 0;
+  margin-right: 0.04em;
+  vertical-align: -0.1em;
+}
+
+.hero-rule {
+  display: inline-block;
+  width: 1.6em;
+  height: 0.045em;
+  min-height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  box-shadow: 0.02em 0.03em 0 rgba(40, 22, 10, 0.45);
+}
+
+.sparkle {
+  position: absolute;
+  translate: -50% -50%;
+  fill: #fff4d6;
+  filter: drop-shadow(0 0 6px rgba(255, 220, 150, 0.8));
+  animation: twinkle 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.6) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) rotate(20deg);
+  }
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.landing-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(28px, 7vh, 72px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.landing-foot .start-btn {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 22px;
+  padding: 10px 46px;
+  outline: 1px solid rgba(251, 246, 236, 0.75);
+  outline-offset: 5px;
+}
+
+.landing-byline {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(13px, 1.3vw, 16px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+@media (max-width: 640px) {
+  .hero-line.l1 {
+    margin-left: 0;
   }
 }

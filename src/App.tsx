@@ -10,19 +10,54 @@ import './App.css'
 type Phase = 'landing' | 'ride' | 'chapter' | 'thanks'
 
 
-function Ticket({ top, title, bottom, byline }: { top: string; title: string[]; bottom: string; byline?: string }) {
+// 첫 화면 제목: 스크립트체 T + 고전 세리프, 손으로 쓴 듯한 whimsical 느낌
+const SPARKLES = [
+  { x: '6%', y: '8%', s: 22, d: 0 },
+  { x: '92%', y: '4%', s: 16, d: 0.8 },
+  { x: '97%', y: '56%', s: 26, d: 1.6 },
+  { x: '2%', y: '70%', s: 14, d: 2.2 },
+  { x: '58%', y: '-6%', s: 12, d: 1.2 },
+  { x: '30%', y: '102%', s: 18, d: 0.4 },
+]
+
+function HeroTitle() {
+  const lines = [
+    <>
+      <span className="swash">T</span>he OCEAN
+    </>,
+    <>JOURNEY</>,
+    <>
+      <span className="hero-rule" aria-hidden="true" />
+      Begins
+    </>,
+  ]
   return (
-    <div className="ticket-wrap">
-      <div className="ticket-back" />
-      <div className="ticket">
-        <p className="ticket-small">{top}</p>
-        <h1 className="ticket-title">
-          <span>{title[0]}</span>
-          <span className="indent">{title[1]}</span>
-        </h1>
-        <p className="ticket-small">{bottom}</p>
-        {byline && <p className="ticket-byline">{byline}</p>}
-      </div>
+    <div className="hero">
+      <h1 className="hero-title" aria-label="The OCEAN JOURNEY Begins">
+        {lines.map((l, i) => (
+          <motion.span
+            key={i}
+            className={`hero-line l${i + 1}`}
+            aria-hidden="true"
+            initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ delay: 0.2 + i * 0.35, duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
+          >
+            {l}
+          </motion.span>
+        ))}
+      </h1>
+      {SPARKLES.map((p, i) => (
+        <svg
+          key={i}
+          className="sparkle"
+          viewBox="-10 -10 20 20"
+          aria-hidden="true"
+          style={{ left: p.x, top: p.y, width: p.s, height: p.s, animationDelay: `${p.d}s` }}
+        >
+          <path d="M0 -10 C1 -2 2 -1 10 0 C2 1 1 2 0 10 C-1 2 -2 1 -10 0 C-2 -1 -1 -2 0 -10Z" />
+        </svg>
+      ))}
     </div>
   )
 }
@@ -461,24 +496,22 @@ export default function App() {
         {phase === 'landing' && (
           <motion.div
             key="landing"
-            className="center-layer"
-            exit={{ opacity: 0, y: -60, rotate: -3 }}
+            className="landing-layer"
+            exit={{ opacity: 0, y: -40 }}
             transition={{ duration: 0.6 }}
           >
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              <Ticket {...site.ticket} byline={site.byline} />
-            </motion.div>
-            <motion.button
-              className="start-btn"
-              onClick={start}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.96 }}
+            <HeroTitle />
+            <motion.div
+              className="landing-foot"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.4, duration: 0.7 }}
             >
-              Start now
-            </motion.button>
+              <motion.button className="start-btn" onClick={start} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
+                Start now
+              </motion.button>
+              <p className="landing-byline">{site.byline}</p>
+            </motion.div>
           </motion.div>
         )}
 
