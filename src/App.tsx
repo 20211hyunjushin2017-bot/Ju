@@ -20,16 +20,39 @@ const SPARKLES = [
   { x: '30%', y: '102%', s: 18, d: 0.4 },
 ]
 
+// 글자마다 아주 조금씩 기울기·높이를 달리해 손으로 찍은 듯한 느낌 (고정값, 움직이지 않음)
+function Wobbly({ text, seed }: { text: string; seed: number }) {
+  return (
+    <>
+      {Array.from(text).map((ch, i) => {
+        const r = hashRand(seed * 97 + i * 7 + 1) * 2.2
+        const y = hashRand(seed * 97 + i * 7 + 2) * 0.035
+        const sc = 1 + hashRand(seed * 97 + i * 7 + 3) * 0.03
+        return ch === ' ' ? (
+          ' '
+        ) : (
+          <span key={i} className="wob" style={{ transform: `translateY(${y}em) rotate(${r}deg) scale(${sc})` }}>
+            {ch}
+          </span>
+        )
+      })}
+    </>
+  )
+}
+
 function HeroTitle() {
   const lines = [
-    <>
-      <span className="swash">T</span>he OCEAN
-    </>,
-    <>JOURNEY</>,
-    <>
+    <span key="1">
+      <span className="swash">T</span>
+      <Wobbly text="he OCEAN" seed={1} />
+    </span>,
+    <Wobbly key="2" text="JOURNEY" seed={2} />,
+    <span key="3" className="hero-l3">
       <span className="hero-rule" aria-hidden="true" />
-      Begins
-    </>,
+      <span>
+        <Wobbly text="Begins" seed={3} />
+      </span>
+    </span>,
   ]
   return (
     <div className="hero">
