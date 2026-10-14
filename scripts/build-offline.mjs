@@ -15,7 +15,7 @@ const families = [
   'Noto+Sans+KR:wght@400;500;700;900',
   'Hahmlet:wght@300..700',
   'Jacquard+24',
-  'Gowun+Batang:wght@700',
+  'Gowun+Batang:wght@400;700',
   'Cormorant+Garamond:ital,wght@0,500;1,500;1,600',
   'Pinyon+Script',
   'IM+Fell+English:ital@0;1',

@@ -533,8 +533,18 @@ export default function App() {
               <motion.button className="start-btn" onClick={start} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
                 Start now
               </motion.button>
-              <p className="landing-byline">{site.byline}</p>
             </motion.div>
+            {/* 기차 그림 좌표에 맞춰 창문 오른쪽 아래(창턱 밑)에 놓음 */}
+            <div className="landing-scene">
+              <motion.p
+                className="landing-byline"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.7, duration: 0.8 }}
+              >
+                {site.byline}
+              </motion.p>
+            </div>
           </motion.div>
         )}
 
