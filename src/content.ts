@@ -28,7 +28,7 @@ export const site = {
   badgeTop: 'OCEAN',
   badgeBottom: 'JOURNEY',
   badgeSub: 'MY OJT LOG',
-  byline: 'by. 기업문화혁신팀 신현주 사원',
+  byline: '기업문화혁신팀 신현주 사원',
   introCaptions: [
     '하나의 여정, 세 개의 정거장.',
     '한화오션에 입사한 날부터 지금까지,',
