@@ -238,7 +238,7 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
       if (cancelled) return
       const W = window.innerWidth
       const H = window.innerHeight
-      const dpr = Math.min(2, window.devicePixelRatio || 1)
+      const dpr = Math.min(1.5, window.devicePixelRatio || 1)
       // 글자가 들어갈 가로 코 수를 먼저 재고, 화면에 맞는 코 크기를 정함
       const probe = document.createElement('canvas').getContext('2d')!
       const widest = (ls: KnitLine[]) =>
@@ -291,9 +291,8 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
       for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) draw(bgOf(r * cols + c), c, r)
 
       // 왼쪽 위 글자부터 한 글자씩. 글자 안에서는 실제 뜨개처럼 아래 단부터 위로, 단마다 방향을 바꿔 가며 한 코씩 뜸
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const perGroup = reduced ? 0 : 190
-      const stitchMs = reduced ? 1 : 220
+      const perGroup = 190
+      const stitchMs = 220
       const members: number[][] = Array.from({ length: groupCount }, () => [])
       // 반짝이(3)는 뜨지 않고, 글자를 다 뜬 뒤 한 번에 나타남
       const sparkCells: number[] = []
@@ -352,7 +351,7 @@ export function KnitThanks({ lines, onReplay }: { lines: KnitLine[]; onReplay: (
             draw(rights[3], col, row)
           }
         }
-        if (current >= 0 && !reduced) {
+        if (current >= 0) {
           const idx = order[current]
           const col = idx % cols
           const row = (idx - col) / cols

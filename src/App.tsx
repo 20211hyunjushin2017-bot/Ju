@@ -3,12 +3,12 @@ import { AnimatePresence, motion } from 'motion/react'
 import { chapters, site, type Chapter } from './content'
 import { TrainScene, type TrainHandle } from './TrainScene'
 import { KnitThanks } from './KnitThanks'
+import { imgUrl } from './assets'
 import { soundOn } from './sound'
 import './App.css'
 
 type Phase = 'landing' | 'ride' | 'chapter' | 'thanks'
 
-const imgUrl = (name: string) => `${import.meta.env.BASE_URL}images/${name}`
 
 function Ticket({ top, title, bottom, byline }: { top: string; title: string[]; bottom: string; byline?: string }) {
   return (

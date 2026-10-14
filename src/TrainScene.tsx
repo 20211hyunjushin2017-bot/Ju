@@ -1,5 +1,6 @@
 import { useImperativeHandle, useRef, type Ref } from 'react'
 import { setTrainSpeed } from './sound'
+import { imgUrl } from './assets'
 
 export type TrainHandle = {
   // tiles: 창문 너비 몇 칸만큼 풍경이 지나갈지 (짝수여야 원래 풍경에서 멈춤)
@@ -8,7 +9,7 @@ export type TrainHandle = {
 }
 
 const STRIP_TILES = 13
-const img = (name: string) => `${import.meta.env.BASE_URL}images/${name}`
+const img = imgUrl
 
 export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean }) {
   const sceneRef = useRef<HTMLDivElement>(null)
@@ -36,17 +37,12 @@ export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean 
   useImperativeHandle(ref, () => ({
     ride(tiles, ms) {
       active.current?.finish()
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       return new Promise<void>((resolve) => {
         const finish = () => {
           if (active.current) cancelAnimationFrame(active.current.raf)
           active.current = null
           paint(0, 0, 0)
           resolve()
-        }
-        if (reduced) {
-          finish()
-          return
         }
         const a = ms * 0.22
         const d = ms * 0.38

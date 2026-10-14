@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:offline": "vite build && node scripts/build-offline.mjs"
   },
   "dependencies": {
     "motion": "^14.1.0",

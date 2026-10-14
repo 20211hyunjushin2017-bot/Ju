@@ -5,6 +5,7 @@
 - 문구 수정: `src/content.ts` (`[ ]`로 표시된 자리를 채우면 됩니다)
 - 이미지 추가: `public/images/`에 넣고 `content.ts`의 `image` 항목에 파일 이름 입력
 - 기차 장면·창밖 풍경: `src/TrainScene.tsx`, 주행음: `src/sound.ts`
+- 인터넷 없이 여는 파일 만들기: `npm run build:offline` → `offline/ocean-journey.html` (이미지·폰트 포함, 더블클릭으로 열기)
 
 
 React + TypeScript + Vite 프로젝트이며, 애니메이션은 [Motion for React](https://motion.dev/docs/react)(`motion` 패키지)를 사용합니다.
