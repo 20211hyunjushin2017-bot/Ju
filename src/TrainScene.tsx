@@ -2,13 +2,19 @@ import { useImperativeHandle, useRef, type ReactNode, type Ref } from 'react'
 import { setTrainSpeed } from './sound'
 import { imgUrl } from './assets'
 
+// 창밖 풍경 이름. public/images에 {name}.webp, {name}-mirror.webp, 각각의 -blur.webp가 있어야 함
+export type View = 'view' | 'ch1-view' | 'ch2-view' | 'ch3-view'
+
 export type TrainHandle = {
-  // tiles: 창문 너비 몇 칸만큼 풍경이 지나갈지 (짝수여야 원래 풍경에서 멈춤)
-  ride: (tiles: number, ms: number) => Promise<void>
+  // 지금 보이는 풍경에서 to 풍경까지 창문 두 칸을 달려 도착
+  // (가운데 칸은 떠나는 풍경의 거울상에서 도착 풍경의 거울상으로 서서히 이어져 경계가 보이지 않음)
+  ride: (to: View, ms: number) => Promise<void>
+  // 달리지 않고 바로 풍경만 바꿈
+  setView: (v: View) => void
   skip: () => void
 }
 
-const STRIP_TILES = 13
+const STRIP_TILES = 3
 const img = imgUrl
 
 // children: 창문 안에 보이는 도착지 풍경 / overlay: 기차 그림 좌표 기준으로 실내에 놓는 요소 (예: 창턱 위 편지)
@@ -31,6 +37,18 @@ export function TrainScene({
   const blurStripRef = useRef<HTMLDivElement>(null)
   const polesRef = useRef<HTMLDivElement>(null)
   const active = useRef<{ raf: number; finish: () => void } | null>(null)
+  const viewRef = useRef<View>('view')
+
+  // 칸 i의 아래층(base)과 위층(over, 오른쪽으로 갈수록 보이는 그림)
+  function setTile(i: number, base: string, over?: string) {
+    for (const strip of [sharpRef.current!, blurStripRef.current!]) {
+      const blur = strip === blurStripRef.current ? '-blur' : ''
+      const tile = strip.children[i] as HTMLElement
+      ;(tile.children[0] as HTMLElement).style.backgroundImage = `url(${img(`${base}${blur}.webp`)})`
+      const o = tile.children[1] as HTMLElement
+      o.style.backgroundImage = over ? `url(${img(`${over}${blur}.webp`)})` : 'none'
+    }
+  }
 
   // v: 0~1 (정차~순항), tps: 순항 속도 (창문 너비/초)
   function paint(p: number, v: number, t: number, tps = 0) {
@@ -48,12 +66,20 @@ export function TrainScene({
   }
 
   useImperativeHandle(ref, () => ({
-    ride(tiles, ms) {
+    ride(to, ms) {
       active.current?.finish()
+      const from = viewRef.current
+      setTile(0, from)
+      setTile(1, `${from}-mirror`, `${to}-mirror`)
+      setTile(2, to)
+      viewRef.current = to
+      const tiles = 2
       return new Promise<void>((resolve) => {
         const finish = () => {
           if (active.current) cancelAnimationFrame(active.current.raf)
           active.current = null
+          // 도착 풍경을 첫 칸으로 옮겨 두고 제자리로 (다음 출발은 이 풍경에서 시작)
+          setTile(0, to)
           paint(0, 0, 0)
           resolve()
         }
@@ -86,15 +112,24 @@ export function TrainScene({
         active.current = { raf: requestAnimationFrame(tick), finish }
       })
     },
+    setView(v) {
+      active.current?.finish()
+      viewRef.current = v
+      setTile(0, v)
+      paint(0, 0, 0)
+    },
     skip() {
       active.current?.finish()
     },
   }))
 
-  // 홀수 칸은 좌우 반전된 풍경 (반전 시 글자가 뒤집혀 보이지 않도록 로고를 지운 이미지)
-  const tiles = (name: string, mirror: string) =>
+  // 처음에는 조선소 풍경 한 칸만 보임. 나머지 칸 그림은 달리기 직전에 채움
+  const tiles = (blur: string) =>
     Array.from({ length: STRIP_TILES }, (_, i) => (
-      <div key={i} className="tile" style={{ backgroundImage: `url(${img(i % 2 ? mirror : name)})` }} />
+      <div key={i} className="tile">
+        <div className="tile-base" style={i === 0 ? { backgroundImage: `url(${img(`view${blur}.webp`)})` } : undefined} />
+        <div className="tile-over" />
+      </div>
     ))
 
   return (
@@ -108,15 +143,14 @@ export function TrainScene({
         </div>
         <div className="window">
           <div className="strip" ref={sharpRef}>
-            {tiles('view.webp', 'view-mirror.webp')}
+            {tiles('')}
           </div>
           <div className="window-blur" ref={blurRef}>
             <div className="strip" ref={blurStripRef}>
-              {tiles('view-blur.webp', 'view-mirror-blur.webp')}
+              {tiles('-blur')}
             </div>
           </div>
           <div className="poles" ref={polesRef} />
-          <div className="window-mood" aria-hidden="true" />
           {children}
         </div>
         {/* 창문 손잡이만 오려낸 이미지 (풍경 위에 고정) */}

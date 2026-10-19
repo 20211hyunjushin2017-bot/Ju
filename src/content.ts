@@ -23,6 +23,8 @@ export type Chapter = {
   scene: 'stars' | 'photo'
   // 기차 안 조명: night(밤, 어둡고 램프만 켜짐) / dawn(새벽, 보랏빛으로 살짝 어둡게) / day(낮, 원래 그림 그대로)
   mood: 'night' | 'dawn' | 'day'
+  // 기차가 달릴 때 창밖에 지나가는 풍경 (도착 풍경과 같은 그림을 창문 크기로 맞춘 것)
+  view: 'ch1-view' | 'ch2-view' | 'ch3-view'
   // true면 창턱 위에 편지봉투가 놓이고, 누르면 마지막 페이지로 이동
   letter?: boolean
   sections: Section[]
@@ -70,6 +72,7 @@ export const chapters: Chapter[] = [
     theme: { bg: '#05060a', accent: '#16324a', ink: '#e6d6b4' },
     scene: 'stars',
     mood: 'night',
+    view: 'ch1-view',
     image: 'ch1-bg.webp',
     walkers: [
       { src: 'ch1-hero-yellow.webp', x: 630, y: 650, w: 170 },
@@ -85,7 +88,8 @@ export const chapters: Chapter[] = [
     theme: { bg: '#3b3477', accent: '#3b3477', ink: '#fbf6ec' },
     scene: 'photo',
     mood: 'dawn',
-    image: 'ch2-dawn.webp',
+    view: 'ch2-view',
+    image: 'ch2-view.webp',
     sections: placeholder('직무 교육과 교육 운영'),
   },
   {
@@ -95,7 +99,8 @@ export const chapters: Chapter[] = [
     theme: { bg: '#2c5a86', accent: '#2c5a86', ink: '#ffffff' },
     scene: 'photo',
     mood: 'day',
-    image: 'ch3-day.webp',
+    view: 'ch3-view',
+    image: 'ch3-view.webp',
     letter: true,
     sections: placeholder('HPSI'),
   },

@@ -139,21 +139,34 @@ function Captions({ lines, interval }: { lines: string[]; interval: number }) {
 const IMG_W = 1672
 const IMG_H = 941
 
-function ExploreScroll({
+// 제목 안의 *기울임* 부분을 회색 이탤릭으로
+function Accent({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(\*[^*]+\*)/).map((part, i) =>
+        part.startsWith('*') && part.endsWith('*') ? <em key={i}>{part.slice(1, -1)}</em> : part,
+      )}
+    </>
+  )
+}
+
+// Explore 버튼이 그대로 늘어나 둥근 카드가 되는 챕터 소개
+function ExploreCard({
   chapter,
   onClose,
-  nextLabel,
+  isLast,
   onNext,
 }: {
   chapter: Chapter
   onClose: () => void
-  nextLabel: string
+  isLast: boolean
   onNext: () => void
 }) {
   const [idx, setIdx] = useState(0)
   const total = chapter.sections.length
   const s = chapter.sections[idx]
   const go = (d: number) => setIdx((i) => Math.min(total - 1, Math.max(0, i + d)))
+  const pad = (n: number) => String(n).padStart(2, '0')
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -165,101 +178,113 @@ function ExploreScroll({
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const unroll = { duration: 1.1, ease: [0.45, 0, 0.2, 1] as const }
-  const rollup = { duration: 0.7, ease: [0.6, 0, 0.4, 1] as const }
-
   return (
     <motion.div
-      className="scroll-backdrop"
-      style={{ '--accent': chapter.theme.accent } as CSSProperties}
+      className="card-backdrop"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { delay: 0.4 } }}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Chapter ${chapter.number} ${chapter.title}`}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      onClick={onClose}
     >
-      <button className="close scroll-close" onClick={onClose} aria-label="닫기">
-        ×
-      </button>
-      <div className="scroll-rig">
-        <div className="sheet-area">
+      <motion.div
+        className="xcard"
+        layoutId={`explore-${chapter.number}`}
+        style={{ borderRadius: 28 }}
+        transition={{ type: 'spring', damping: 30, stiffness: 210 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Chapter ${chapter.number} ${chapter.title}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <motion.div
+          className="xcard-inner"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { delay: 0.28, duration: 0.4 } }}
+          exit={{ opacity: 0, transition: { duration: 0.12 } }}
+        >
+          <header className="xcard-head">
+            <p className="xcard-eyebrow">
+              <span className="dot-live" /> CHAPTER {chapter.number} · {chapter.title}
+            </p>
+            <div className="xcard-head-right">
+              <span className="xcard-count">
+                {pad(idx + 1)} / {pad(total)}
+              </span>
+              <button className="xcard-close" onClick={onClose} aria-label="닫기">
+                ×
+              </button>
+            </div>
+          </header>
+
           <AnimatePresence mode="wait">
-            <motion.div key={idx} className="sheet-wrap">
-              <motion.div
-                className="sheet-clip"
-                initial={{ clipPath: 'inset(-10% -12% 100% -12%)' }}
-                animate={{
-                  clipPath: ['inset(-10% -12% 100% -12%)', 'inset(-10% -12% 0% -12%)', 'inset(-10% -12% -14% -12%)'],
-                  transition: { ...unroll, times: [0, 0.999, 1] },
-                }}
-                exit={{
-                  clipPath: ['inset(-10% -12% -14% -12%)', 'inset(-10% -12% 0% -12%)', 'inset(-10% -12% 100% -12%)'],
-                  transition: { ...rollup, times: [0, 0.001, 1] },
-                }}
-              >
-                <div className="curl-corner">
-                  <div className="curl-shadow" />
-                </div>
-                <div className="sheet">
-                <motion.div
-                  className="sheet-body"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1, transition: { delay: 0.85, duration: 0.4 } }}
-                  exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                >
-                  <p className="sheet-count">
-                    CHAPTER {chapter.number} · {String(idx + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
-                  </p>
-                  <h3>{s.heading}</h3>
+            <motion.div
+              key={idx}
+              className="xcard-body"
+              initial={{ opacity: 0, y: 18, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -12, filter: 'blur(6px)' }}
+              transition={{ duration: 0.45, ease: [0.2, 0.7, 0.2, 1] }}
+            >
+              <div className="xcard-main">
+                <h3>
+                  <Accent text={s.heading} />
+                </h3>
+                <p>{s.body}</p>
+              </div>
+              {(s.image || s.points) && (
+                <div className="xcard-side">
                   {s.image && <img src={imgUrl(s.image)} alt="" />}
-                  <p>{s.body}</p>
                   {s.points && (
-                    <ul>
+                    <ol>
                       {s.points.map((pt, j) => (
-                        <li key={j}>{pt}</li>
+                        <li key={j}>
+                          <span>{pad(j + 1)}</span>
+                          {pt}
+                        </li>
                       ))}
-                    </ul>
+                    </ol>
                   )}
-                </motion.div>
                 </div>
-                <motion.div
-                  className="curl-corner curl-wrap"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1, transition: { delay: 0.95, duration: 0.35 } }}
-                  exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                >
-                  <div className="curl" />
-                </motion.div>
-              </motion.div>
-              <motion.div
-                className="roll"
-                initial={{ top: '0%', opacity: 1 }}
-                animate={{ top: '100%', opacity: [1, 1, 0], transition: { ...unroll, opacity: { duration: 1.25, times: [0, 0.85, 1] } } }}
-                exit={{ top: '0%', opacity: [0, 1, 1], transition: { ...rollup, opacity: { duration: 0.7, times: [0, 0.12, 1] } } }}
-              />
+              )}
             </motion.div>
           </AnimatePresence>
-        </div>
-        <div className="scroll-controls">
-          <button onClick={() => go(-1)} disabled={idx === 0} aria-label="이전 장">
-            <Arrow />
-          </button>
-          <span>
-            {idx + 1} / {total}
-          </span>
-          <button onClick={() => go(1)} disabled={idx === total - 1} aria-label="다음 장">
-            <Arrow />
-          </button>
-        </div>
-        <button
-          className={nextLabel === 'letter' ? 'next-chapter letter-next' : 'next-chapter'}
-          onClick={onNext}
-          aria-label={nextLabel === 'letter' ? '마지막 편지 열기' : undefined}
-        >
-          {nextLabel === 'letter' ? <LetterIcon /> : nextLabel}
-        </button>
-      </div>
+
+          <footer className="xcard-foot">
+            <div className="xcard-tabs" role="tablist" aria-label="소개 순서">
+              {chapter.sections.map((_, i) => (
+                <button
+                  key={i}
+                  role="tab"
+                  aria-selected={i === idx}
+                  className={i === idx ? 'on' : ''}
+                  onClick={() => setIdx(i)}
+                >
+                  {pad(i + 1)}
+                </button>
+              ))}
+            </div>
+            <div className="xcard-actions">
+              <button className="pill ghost" onClick={() => go(-1)} disabled={idx === 0} aria-label="이전">
+                <Arrow />
+              </button>
+              {idx < total - 1 ? (
+                <button className="pill solid" onClick={() => go(1)}>
+                  다음 이야기 <span className="ne">↗</span>
+                </button>
+              ) : isLast ? (
+                <button className="pill solid letter-pill" onClick={onNext} aria-label="마지막 편지 열기">
+                  <LetterIcon /> 편지 열기
+                </button>
+              ) : (
+                <button className="pill solid" onClick={onNext}>
+                  다음 챕터로 <span className="ne">↗</span>
+                </button>
+              )}
+            </div>
+          </footer>
+        </motion.div>
+      </motion.div>
     </motion.div>
   )
 }
@@ -333,11 +358,13 @@ function Destination({
   chapter,
   explored,
   ready,
+  exploring,
   onExplore,
 }: {
   chapter: Chapter
   explored: boolean
   ready: boolean
+  exploring: boolean
   onExplore: () => void
 }) {
   return (
@@ -346,15 +373,10 @@ function Destination({
       style={{ '--ink': chapter.theme.ink } as CSSProperties}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.7 } }}
-      transition={{ duration: 1.3, ease: [0.3, 0, 0.2, 1] }}
+      exit={{ opacity: 0, transition: { duration: 0.35 } }}
+      transition={{ duration: 0.35 }}
     >
-      <motion.div
-        className="dest-bg"
-        initial={{ scale: 1.12, filter: 'blur(14px)' }}
-        animate={{ scale: 1, filter: 'blur(0px)' }}
-        transition={{ duration: 1.8, ease: [0.2, 0.6, 0.2, 1] }}
-      >
+      <div className="dest-bg">
         <div className="dest-drift">
           {chapter.scene === 'stars' && chapter.image && (
             <div className="dest-imgbox">
@@ -366,7 +388,7 @@ function Destination({
             <img className="land-photo" src={imgUrl(chapter.image)} alt="" />
           )}
         </div>
-      </motion.div>
+      </div>
       <div className={`dest-vignette mood-${chapter.mood}`} />
       <AnimatePresence>
         {ready && (
@@ -388,9 +410,24 @@ function Destination({
               <p key="s" className="chapter-sub">
                 {chapter.subtitle}
               </p>,
-              <button key="e" className="explore-btn" onClick={onExplore}>
-                {explored ? 'Explore again' : 'Explore'} <Arrow />
-              </button>,
+              exploring ? (
+                <span key="e" className="explore-btn ghost" aria-hidden="true">
+                  Explore <Arrow />
+                </span>
+              ) : (
+                <motion.button
+                  key="e"
+                  layoutId={`explore-${chapter.number}`}
+                  style={{ borderRadius: 999 }}
+                  className="explore-btn"
+                  onClick={onExplore}
+                  transition={{ type: 'spring', damping: 30, stiffness: 210 }}
+                >
+                  <motion.span layout="position" className="explore-label">
+                    {explored ? 'Explore again' : 'Explore'} <Arrow />
+                  </motion.span>
+                </motion.button>
+              ),
             ].map((el) => (
               <motion.div
                 key={el.key}
@@ -428,8 +465,8 @@ export default function App() {
   const navId = useRef(0)
 
   // 도착했을 때 이 이동이 여전히 마지막으로 고른 이동이면 true
-  // arriveAt: 도착할 챕터. 감속 구간에 들어서면 창밖이 그 풍경으로 서서히 바뀜
-  const ride = useCallback(async (lines: string[], tiles: number, ms: number, intro = false, arriveAt?: number) => {
+  // arriveAt: 도착할 챕터. 창밖은 지금 풍경에서 그 챕터 풍경까지 이어서 흘러감
+  const ride = useCallback(async (lines: string[], arriveAt: number, ms: number, intro = false) => {
     const id = ++navId.current
     setExploring(false)
     setMenuOpen(false)
@@ -438,20 +475,11 @@ export default function App() {
     setIsIntro(intro)
     setPhase('ride')
     setDest(null)
-    if (arriveAt !== undefined) setMood(chapters[arriveAt].mood)
-    if (arriveAt !== undefined)
-      window.setTimeout(() => {
-        if (id === navId.current) {
-          setCurrent(arriveAt)
-          setDest(arriveAt)
-        }
-      }, ms * 0.6)
-    await train.current!.ride(tiles, ms)
+    setMood(chapters[arriveAt].mood)
+    await train.current!.ride(chapters[arriveAt].view, ms)
     if (id !== navId.current) return false
-    if (arriveAt !== undefined) {
-      setCurrent(arriveAt)
-      setDest(arriveAt)
-    }
+    setCurrent(arriveAt)
+    setDest(arriveAt)
     return true
   }, [])
 
@@ -460,7 +488,7 @@ export default function App() {
       // 메뉴에서 바로 고를 때도 첫 클릭이면 소리를 켤 수 있게
       soundOn()
       const c = chapters[i]
-      if (!(await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 2, 5000, false, i))) return
+      if (!(await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], i, 5000))) return
       setPhase('chapter')
     },
     [ride],
@@ -469,13 +497,13 @@ export default function App() {
   const start = async () => {
     // 첫 클릭 때 오디오를 켜 두면, 기차가 달릴 때만 소리가 납니다
     soundOn()
-    if (!(await ride(site.introCaptions, 2, 6000, true, 0))) return
+    if (!(await ride(site.introCaptions, 0, 6000, true))) return
     setPhase('chapter')
   }
 
   const goToIntro = () => {
     navId.current++
-    train.current?.skip()
+    train.current?.setView('view')
     setExploring(false)
     setMenuOpen(false)
     setDest(null)
@@ -542,6 +570,7 @@ export default function App() {
               chapter={chapters[dest]}
               explored={explored.has(dest)}
               ready={phase === 'chapter'}
+              exploring={exploring && phase === 'chapter'}
               onExplore={openExplore}
             />
           )}
@@ -563,9 +592,14 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.4, duration: 0.7 }}
             >
-              <motion.button className="start-btn" onClick={start} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
-                Start now
-              </motion.button>
+              <button className="start-link" onClick={start}>
+                {/* 제목의 긴 선과 같은 잉크 느낌으로 손으로 그은 화살표 */}
+                <svg className="start-arrow" viewBox="0 0 120 24" aria-hidden="true">
+                  <path d="M3 13.2 C 30 11.6, 62 12.9, 112 11.4" />
+                  <path d="M97 3.5 C 103 7, 108 9.6, 113.5 11.5 C 108 13.6, 103 16.6, 97.5 20.5" />
+                </svg>
+                <span>Start</span>
+              </button>
             </motion.div>
             {/* 기차 그림 좌표에 맞춰 창문 오른쪽 아래(창턱 밑)에 놓음 */}
             <div className="landing-scene">
@@ -632,11 +666,11 @@ export default function App() {
 
       <AnimatePresence>
         {exploring && phase === 'chapter' && (
-          <ExploreScroll
+          <ExploreCard
             key={`explore-${current}`}
             chapter={chapters[current]}
             onClose={() => setExploring(false)}
-            nextLabel={current < chapters.length - 1 ? 'Next chapter' : 'letter'}
+            isLast={current === chapters.length - 1}
             onNext={() => {
               if (current < chapters.length - 1) void goToChapter(current + 1)
               else openLetter()
