@@ -17,9 +17,11 @@ export function TrainScene({
   dim,
   children,
   overlay,
+  mood = 'day',
 }: {
   ref?: Ref<TrainHandle>
   dim: boolean
+  mood?: 'day' | 'night' | 'dawn'
   children?: ReactNode
   overlay?: ReactNode
 }) {
@@ -96,9 +98,14 @@ export function TrainScene({
     ))
 
   return (
-    <div className="stage">
+    <div className={`stage mood-${mood}`}>
       <div className="scene" ref={sceneRef}>
         <img className="scene-img" src={img('train.webp')} alt="" aria-hidden="true" />
+        {/* 시간대에 따라 기차 안을 어둡게 하고, 벽 램프 불빛만 남김 */}
+        <div className="interior-mood" aria-hidden="true">
+          <span className="lamp-glow" style={{ left: '14.7%', top: '29.7%' }} />
+          <span className="lamp-glow" style={{ left: '85.4%', top: '29.7%' }} />
+        </div>
         <div className="window">
           <div className="strip" ref={sharpRef}>
             {tiles('view.webp', 'view-mirror.webp')}
@@ -109,6 +116,7 @@ export function TrainScene({
             </div>
           </div>
           <div className="poles" ref={polesRef} />
+          <div className="window-mood" aria-hidden="true" />
           {children}
         </div>
         {/* 창문 손잡이만 오려낸 이미지 (풍경 위에 고정) */}

@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { chapters, site, type Chapter } from './content'
 import { TrainScene, type TrainHandle } from './TrainScene'
 import { KnitThanks } from './KnitThanks'
-import { HarborSunset, LighthouseDawn } from './Landscapes'
 import { imgUrl } from './assets'
 import { soundOn } from './sound'
 import './App.css'
@@ -363,11 +362,12 @@ function Destination({
               {chapter.walkers && <Walkers walkers={chapter.walkers} />}
             </div>
           )}
-          {chapter.scene === 'lighthouse' && <LighthouseDawn />}
-          {chapter.scene === 'harbor' && <HarborSunset />}
+          {chapter.scene === 'photo' && chapter.image && (
+            <img className="land-photo" src={imgUrl(chapter.image)} alt="" />
+          )}
         </div>
       </motion.div>
-      <div className="dest-vignette" />
+      <div className={`dest-vignette mood-${chapter.mood}`} />
       <AnimatePresence>
         {ready && (
           <motion.div
@@ -422,6 +422,8 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   // 창문 밖에 보이는 도착지 (null이면 조선소 풍경)
   const [dest, setDest] = useState<number | null>(null)
+  // 기차 안 조명 (도착할 챕터의 시간대를 따라 달리는 동안 서서히 바뀜)
+  const [mood, setMood] = useState<Chapter['mood']>('day')
   // 이동 중에 메뉴로 다른 곳을 고르면, 앞서 시작한 이동은 도착해도 화면을 바꾸지 않음
   const navId = useRef(0)
 
@@ -436,6 +438,7 @@ export default function App() {
     setIsIntro(intro)
     setPhase('ride')
     setDest(null)
+    if (arriveAt !== undefined) setMood(chapters[arriveAt].mood)
     if (arriveAt !== undefined)
       window.setTimeout(() => {
         if (id === navId.current) {
@@ -476,6 +479,7 @@ export default function App() {
     setExploring(false)
     setMenuOpen(false)
     setDest(null)
+    setMood('day')
     setPhase('landing')
   }
 
@@ -509,6 +513,7 @@ export default function App() {
       <TrainScene
         ref={train}
         dim={phase === 'landing'}
+        mood={mood}
         overlay={
           <AnimatePresence>
             {phase === 'chapter' && chapters[current].letter && (

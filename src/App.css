@@ -296,14 +296,6 @@
   display: block;
 }
 
-.land {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
 .dest-vignette {
   position: absolute;
   inset: 0;
@@ -1046,110 +1038,101 @@
   }
 }
 
-/* ---------- 풍경 애니메이션 ---------- */
-.land .tw {
-  animation: land-tw 3s ease-in-out infinite;
+/* ---------- 기차 안 조명 (시간대) ---------- */
+.interior-mood,
+.window-mood {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 3.2s ease,
+    background-color 3.2s ease;
 }
 
-@keyframes land-tw {
-  50% {
-    opacity: 0.25;
-  }
+.interior-mood {
+  background-color: rgb(8 12 34 / 0.8);
 }
 
-.land .drift {
-  animation: land-drift 30s linear infinite;
+.window-mood {
+  background-color: rgb(8 12 34 / 0.55);
 }
 
-@keyframes land-drift {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-260px);
-  }
+.mood-night .interior-mood,
+.mood-night .window-mood {
+  opacity: 1;
 }
 
-.land .shim {
-  animation: land-shim 2.4s ease-in-out infinite;
+.mood-dawn .interior-mood {
+  opacity: 1;
+  background-color: rgb(46 24 70 / 0.5);
 }
 
-@keyframes land-shim {
+.mood-dawn .window-mood {
+  opacity: 1;
+  background-color: rgb(46 24 70 / 0.3);
+}
+
+/* 벽 램프 불빛 */
+.lamp-glow {
+  position: absolute;
+  width: 16%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 200 120 / 0.85), rgb(255 170 80 / 0.28) 35%, transparent);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 3.2s ease;
+}
+
+.mood-night .lamp-glow {
+  opacity: 1;
+  animation: lamp-flicker 5s ease-in-out infinite;
+}
+
+.mood-dawn .lamp-glow {
+  opacity: 0.6;
+}
+
+@keyframes lamp-flicker {
   0%,
   100% {
-    opacity: 0.15;
+    filter: brightness(1);
+  }
+  47% {
+    filter: brightness(1.08);
   }
   50% {
-    opacity: 0.85;
+    filter: brightness(0.9);
   }
 }
 
-.land .beam {
-  transform-origin: 820px 235px;
-  animation: land-beam 6s ease-in-out infinite;
+.latch {
+  transition: filter 3.2s ease;
 }
 
-@keyframes land-beam {
-  0%,
-  100% {
-    transform: scaleX(1);
-    opacity: 0.9;
-  }
-  45% {
-    transform: scaleX(0.05);
-    opacity: 0.2;
-  }
-  50% {
-    transform: scaleX(-0.05);
-    opacity: 0;
-  }
-  55% {
-    transform: scaleX(0.05);
-    opacity: 0.2;
-  }
+.mood-night .latch {
+  filter: brightness(0.32) saturate(0.6);
 }
 
-.land .lamp {
-  animation: land-lamp 6s ease-in-out infinite;
+.mood-dawn .latch {
+  filter: brightness(0.7);
 }
 
-@keyframes land-lamp {
-  45%,
-  55% {
-    opacity: 0.4;
-  }
+/* 창문을 꽉 채우는 풍경 그림 */
+.land-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.land .ship {
-  animation: land-ship 26s ease-out forwards;
-}
-
-@keyframes land-ship {
-  from {
-    transform: translateX(160px);
-  }
-  to {
-    transform: translateX(-40px);
-  }
-}
-
-.land .gull {
-  animation: land-gull 9s ease-in-out infinite alternate;
-}
-
-.land .gull.g2 {
-  animation-duration: 11s;
-}
-
-.land .gull.g3 {
-  animation-duration: 7s;
-}
-
-@keyframes land-gull {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(60px, -14px);
-  }
+/* 밝은 낮 풍경 위에서도 흰 글씨가 읽히도록 */
+.dest-vignette.mood-day {
+  background:
+    radial-gradient(ellipse 55% 50% at 50% 45%, rgb(12 28 52 / 0.42), transparent 75%),
+    linear-gradient(transparent 70%, rgb(10 20 40 / 0.2));
 }

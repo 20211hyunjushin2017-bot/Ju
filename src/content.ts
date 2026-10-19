@@ -19,8 +19,10 @@ export type Chapter = {
   image?: string
   // 배경 위를 걸어 들어오는 캐릭터. x, y, w는 배경 이미지(1672×941) 기준 픽셀 위치
   walkers?: { src: string; x: number; y: number; w: number }[]
-  // 창문 밖 도착지 풍경: stars(밤하늘, image+walkers 사용) / lighthouse(새벽 등대) / harbor(노을 항구)
-  scene: 'stars' | 'lighthouse' | 'harbor'
+  // 창문 밖 도착지 풍경: stars(밤하늘 그림 + 걸어오는 히어로) / photo(image 그림을 창문에 꽉 채움)
+  scene: 'stars' | 'photo'
+  // 기차 안 조명: night(밤, 어둡고 램프만 켜짐) / dawn(새벽, 보랏빛으로 살짝 어둡게) / day(낮, 원래 그림 그대로)
+  mood: 'night' | 'dawn' | 'day'
   // true면 창턱 위에 편지봉투가 놓이고, 누르면 마지막 페이지로 이동
   letter?: boolean
   sections: Section[]
@@ -67,6 +69,7 @@ export const chapters: Chapter[] = [
     subtitle: '[챕터 1 한 줄 소개]',
     theme: { bg: '#05060a', accent: '#16324a', ink: '#e6d6b4' },
     scene: 'stars',
+    mood: 'night',
     image: 'ch1-bg.webp',
     walkers: [
       { src: 'ch1-hero-yellow.webp', x: 630, y: 650, w: 170 },
@@ -80,15 +83,19 @@ export const chapters: Chapter[] = [
     title: '직무 교육과 교육 운영',
     subtitle: '[챕터 2 한 줄 소개]',
     theme: { bg: '#3b3477', accent: '#3b3477', ink: '#fbf6ec' },
-    scene: 'lighthouse',
+    scene: 'photo',
+    mood: 'dawn',
+    image: 'ch2-dawn.webp',
     sections: placeholder('직무 교육과 교육 운영'),
   },
   {
     number: '03',
     title: 'HPSI',
     subtitle: '[챕터 3 한 줄 소개]',
-    theme: { bg: '#7b3a6e', accent: '#7b3a6e', ink: '#fff6e6' },
-    scene: 'harbor',
+    theme: { bg: '#2c5a86', accent: '#2c5a86', ink: '#ffffff' },
+    scene: 'photo',
+    mood: 'day',
+    image: 'ch3-day.webp',
     letter: true,
     sections: placeholder('HPSI'),
   },
