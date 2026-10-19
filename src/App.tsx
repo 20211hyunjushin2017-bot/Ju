@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { chapters, site, type Chapter } from './content'
 import { TrainScene, type TrainHandle } from './TrainScene'
 import { KnitThanks } from './KnitThanks'
+import { HarborSunset, LighthouseDawn } from './Landscapes'
 import { imgUrl } from './assets'
 import { soundOn } from './sound'
 import './App.css'
@@ -273,7 +274,7 @@ function Walkers({ walkers }: { walkers: NonNullable<Chapter['walkers']> }) {
           key={w.src}
           className="walker"
           style={{ left: `${(w.x / IMG_W) * 100}%`, top: `${(w.y / IMG_H) * 100}%`, width: `${(w.w / IMG_W) * 100}%` }}
-          initial={{ x: '75vw' }}
+          initial={{ x: '70cqw' }}
           animate={{ x: 0 }}
           transition={{ delay: 0.5 + i * 0.35, duration: walk, ease: [0.1, 0.4, 0.4, 1] }}
         >
@@ -328,96 +329,84 @@ function BoilText({ text }: { text: string }) {
   )
 }
 
-function ChapterScreen({
+// 창문 안 도착지: 풍경이 흐릿하게 확대된 상태에서 또렷하게 자리 잡고, 그 위에 챕터 제목이 뜸
+function Destination({
   chapter,
   explored,
+  ready,
   onExplore,
-  onLetter,
 }: {
   chapter: Chapter
   explored: boolean
+  ready: boolean
   onExplore: () => void
-  onLetter: () => void
 }) {
-  const t = chapter.theme
   return (
-    <motion.section
-      className={chapter.image ? 'chapter has-image' : 'chapter'}
-      style={
-        {
-          '--bg': t.bg,
-          '--accent': t.accent,
-          '--ink': t.ink,
-        } as CSSProperties
-      }
-      initial={{ clipPath: 'polygon(0 0, 0 0, -30% 100%, -30% 100%)' }}
-      animate={{ clipPath: 'polygon(0 0, 130% 0, 100% 100%, -30% 100%)' }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.9, ease: [0.7, 0, 0.2, 1] }}
+    <motion.div
+      className="dest"
+      style={{ '--ink': chapter.theme.ink } as CSSProperties}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.7 } }}
+      transition={{ duration: 1.3, ease: [0.3, 0, 0.2, 1] }}
     >
-      {chapter.image && (
-        <div className="chapter-scene">
-          <img className="scene-img" src={imgUrl(chapter.image)} alt="" />
-          {chapter.walkers && <Walkers walkers={chapter.walkers} />}
+      <motion.div
+        className="dest-bg"
+        initial={{ scale: 1.12, filter: 'blur(14px)' }}
+        animate={{ scale: 1, filter: 'blur(0px)' }}
+        transition={{ duration: 1.8, ease: [0.2, 0.6, 0.2, 1] }}
+      >
+        <div className="dest-drift">
+          {chapter.scene === 'stars' && chapter.image && (
+            <div className="dest-imgbox">
+              <img src={imgUrl(chapter.image)} alt="" />
+              {chapter.walkers && <Walkers walkers={chapter.walkers} />}
+            </div>
+          )}
+          {chapter.scene === 'lighthouse' && <LighthouseDawn />}
+          {chapter.scene === 'harbor' && <HarborSunset />}
         </div>
-      )}
-      <div className="chapter-tint" />
-      {!chapter.image && (
-        <div className="chapter-numeral" aria-hidden="true">
-          {chapter.number}
-        </div>
-      )}
-      <div className="chapter-center">
-        <motion.p
-          className="chapter-label"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <BoilText text={`CHAPTER ${chapter.number}`} />
-        </motion.p>
-        <motion.h2
-          className="chapter-title"
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.75, duration: 0.6 }}
-        >
-          <BoilText text={chapter.title} />
-        </motion.h2>
-        <motion.p
-          className="chapter-sub"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          {chapter.subtitle}
-        </motion.p>
-        <motion.button
-          className="explore-btn"
-          onClick={onExplore}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.15 }}
-          whileHover={{ x: 6 }}
-        >
-          {explored ? 'EXPLORE AGAIN' : 'EXPLORE'} <Arrow />
-        </motion.button>
-      </div>
-      {chapter.letter && (
-        <motion.button
-          className="letter-btn"
-          onClick={onLetter}
-          aria-label="마지막 편지 열기"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.4 }}
-          whileHover={{ scale: 1.08, rotate: -3 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <LetterIcon />
-        </motion.button>
-      )}
-    </motion.section>
+      </motion.div>
+      <div className="dest-vignette" />
+      <AnimatePresence>
+        {ready && (
+          <motion.div
+            key="text"
+            className={`dest-text scene-${chapter.scene}`}
+            initial="hide"
+            animate="show"
+            exit="hide"
+            variants={{ show: { transition: { staggerChildren: 0.18 } } }}
+          >
+            {[
+              <p key="l" className="chapter-label">
+                <BoilText text={`CHAPTER ${chapter.number}`} />
+              </p>,
+              <h2 key="t" className="chapter-title">
+                <BoilText text={chapter.title} />
+              </h2>,
+              <p key="s" className="chapter-sub">
+                {chapter.subtitle}
+              </p>,
+              <button key="e" className="explore-btn" onClick={onExplore}>
+                {explored ? 'Explore again' : 'Explore'} <Arrow />
+              </button>,
+            ].map((el) => (
+              <motion.div
+                key={el.key}
+                className="dest-row"
+                variants={{
+                  hide: { opacity: 0, y: 14, filter: 'blur(6px)' },
+                  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.8 } },
+                }}
+              >
+                {el}
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   )
 }
 
@@ -431,11 +420,14 @@ export default function App() {
   const [exploring, setExploring] = useState(false)
   const [explored, setExplored] = useState<Set<number>>(new Set())
   const [menuOpen, setMenuOpen] = useState(false)
+  // 창문 밖에 보이는 도착지 (null이면 조선소 풍경)
+  const [dest, setDest] = useState<number | null>(null)
   // 이동 중에 메뉴로 다른 곳을 고르면, 앞서 시작한 이동은 도착해도 화면을 바꾸지 않음
   const navId = useRef(0)
 
   // 도착했을 때 이 이동이 여전히 마지막으로 고른 이동이면 true
-  const ride = useCallback(async (lines: string[], tiles: number, ms: number, intro = false) => {
+  // arriveAt: 도착할 챕터. 감속 구간에 들어서면 창밖이 그 풍경으로 서서히 바뀜
+  const ride = useCallback(async (lines: string[], tiles: number, ms: number, intro = false, arriveAt?: number) => {
     const id = ++navId.current
     setExploring(false)
     setMenuOpen(false)
@@ -443,8 +435,21 @@ export default function App() {
     setRideMs(ms)
     setIsIntro(intro)
     setPhase('ride')
+    setDest(null)
+    if (arriveAt !== undefined)
+      window.setTimeout(() => {
+        if (id === navId.current) {
+          setCurrent(arriveAt)
+          setDest(arriveAt)
+        }
+      }, ms * 0.6)
     await train.current!.ride(tiles, ms)
-    return id === navId.current
+    if (id !== navId.current) return false
+    if (arriveAt !== undefined) {
+      setCurrent(arriveAt)
+      setDest(arriveAt)
+    }
+    return true
   }, [])
 
   const goToChapter = useCallback(
@@ -452,8 +457,7 @@ export default function App() {
       // 메뉴에서 바로 고를 때도 첫 클릭이면 소리를 켤 수 있게
       soundOn()
       const c = chapters[i]
-      if (!(await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 2, 5000))) return
-      setCurrent(i)
+      if (!(await ride([`다음 정거장 · CHAPTER ${c.number}`, c.title], 2, 5000, false, i))) return
       setPhase('chapter')
     },
     [ride],
@@ -462,8 +466,7 @@ export default function App() {
   const start = async () => {
     // 첫 클릭 때 오디오를 켜 두면, 기차가 달릴 때만 소리가 납니다
     soundOn()
-    if (!(await ride(site.introCaptions, 2, 6000, true))) return
-    setCurrent(0)
+    if (!(await ride(site.introCaptions, 2, 6000, true, 0))) return
     setPhase('chapter')
   }
 
@@ -472,6 +475,7 @@ export default function App() {
     train.current?.skip()
     setExploring(false)
     setMenuOpen(false)
+    setDest(null)
     setPhase('landing')
   }
 
@@ -483,6 +487,7 @@ export default function App() {
   }
 
   const openExplore = () => {
+    if (phase !== 'chapter') return
     setExploring(true)
     if (!explored.has(current)) {
       setExplored(new Set(explored).add(current))
@@ -501,19 +506,42 @@ export default function App() {
 
   return (
     <main className="app">
-      <TrainScene ref={train} dim={phase === 'landing'} />
-
-      <AnimatePresence>
-        {phase === 'chapter' && (
-          <ChapterScreen
-            key={current}
-            chapter={chapters[current]}
-            explored={explored.has(current)}
-            onExplore={openExplore}
-            onLetter={openLetter}
-          />
-        )}
-      </AnimatePresence>
+      <TrainScene
+        ref={train}
+        dim={phase === 'landing'}
+        overlay={
+          <AnimatePresence>
+            {phase === 'chapter' && chapters[current].letter && (
+              <motion.button
+                key="letter"
+                className="letter-btn"
+                onClick={openLetter}
+                aria-label="마지막 편지 열기"
+                initial={{ opacity: 0, y: -30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 1.2, type: 'spring', damping: 12, stiffness: 140 }}
+                whileHover={{ scale: 1.08, rotate: -3 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <LetterIcon />
+              </motion.button>
+            )}
+          </AnimatePresence>
+        }
+      >
+        <AnimatePresence>
+          {dest !== null && phase !== 'thanks' && (
+            <Destination
+              key={dest}
+              chapter={chapters[dest]}
+              explored={explored.has(dest)}
+              ready={phase === 'chapter'}
+              onExplore={openExplore}
+            />
+          )}
+        </AnimatePresence>
+      </TrainScene>
 
       <AnimatePresence>
         {phase === 'landing' && (

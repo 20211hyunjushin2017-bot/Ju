@@ -247,31 +247,72 @@
 }
 
 /* ---------- 챕터 ---------- */
-.chapter {
+/* ---------- 창문 안 도착지 ---------- */
+.window {
+  container-type: size;
+}
+
+.dest {
   position: absolute;
   inset: 0;
-  z-index: 3;
-  background-color: var(--bg);
-  background-size: cover;
-  background-position: center;
+  z-index: 2;
+}
+
+.dest-bg {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
-.chapter-tint {
+/* 풍경이 아주 천천히 흐르듯 움직임 */
+.dest-drift {
   position: absolute;
-  inset: 0;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.45));
+  inset: -3%;
+  animation: dest-drift 22s ease-in-out infinite alternate;
 }
 
-.chapter-scene {
+@keyframes dest-drift {
+  from {
+    transform: scale(1.02) translateX(-1%);
+  }
+  to {
+    transform: scale(1.06) translateX(1%);
+  }
+}
+
+.dest-imgbox {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: max(100vw, 177.69vh);
-  height: max(100vh, 56.28vw);
-  transform: translate(-50%, -50%);
+  left: 0;
+  width: 100%;
+  top: -6%;
+  height: 112.1%;
+}
+
+.dest-imgbox > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.land {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.dest-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* 필름 그레인 + 가운데 글씨 뒤를 살짝 어둡게 */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.13'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 60% 55% at 50% 42%, rgba(10, 6, 20, 0.32), transparent 70%),
+    linear-gradient(transparent 70%, rgba(10, 6, 20, 0.25));
 }
 
 .walker {
@@ -284,84 +325,88 @@
   image-rendering: pixelated;
 }
 
-.chapter.has-image .chapter-tint {
-  background: radial-gradient(ellipse at 50% 42%, rgba(0, 0, 0, 0.35), transparent 60%);
-  mix-blend-mode: normal;
-}
-
-.chapter.has-image .chapter-center {
-  padding-bottom: 14vh;
-}
-
-.chapter.has-image .chapter-title {
-  text-shadow: 0.025em 0.035em 0 #7a6248;
-}
-
-.chapter-numeral {
-  position: absolute;
-  right: 3vw;
-  bottom: 4vh;
-  font-family: var(--display);
-  font-stretch: 125%;
-  font-weight: 900;
-  font-size: 46vmin;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 2px color-mix(in srgb, var(--ink) 10%, transparent);
-  pointer-events: none;
-}
-
-.chapter-center {
+.dest-text {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
+  gap: 1.6cqh;
+  padding: 0 6cqw 4cqh;
   text-align: center;
   color: var(--ink);
 }
 
+/* 밤하늘 챕터는 아래쪽에 히어로가 서 있으니 글씨를 조금 위로 */
+.dest-text.scene-stars {
+  justify-content: flex-start;
+  padding-top: 13cqh;
+}
+
+.dest-row {
+  max-width: min(84cqw, 92vw);
+}
+
 .chapter-label {
-  margin: 0 0 18px;
-  font-family: var(--chapter-font);
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-variant-numeric: lining-nums;
   font-weight: 500;
-  font-size: clamp(18px, 2.6vw, 32px);
-  letter-spacing: 0.12em;
-  transform: rotate(-3deg);
+  font-size: min(4.4cqh, 4.6vw);
+  letter-spacing: 0.32em;
+  padding-left: 0.32em;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
 }
 
 .chapter-title {
   margin: 0;
-  max-width: 16ch;
   font-family: var(--chapter-font);
-  font-weight: 500;
-  font-size: clamp(40px, 8vw, 112px);
-  line-height: 1.05;
+  font-weight: 400;
+  font-size: min(12.5cqh, 8.6vw);
+  line-height: 1.12;
   word-break: keep-all;
-  text-shadow: 0.025em 0.035em 0 color-mix(in srgb, var(--bg) 55%, #000);
+  text-wrap: balance;
+  text-shadow:
+    0.02em 0.03em 0 rgba(30, 16, 30, 0.45),
+    0 0 0.5em rgba(10, 6, 20, 0.45);
 }
 
 .chapter-sub {
-  margin: 22px 0 0;
-  font-size: clamp(15px, 1.8vw, 19px);
-  font-weight: 500;
+  margin: 0;
+  font-size: min(3.3cqh, 3.8vw);
+  font-weight: 400;
   opacity: 0.9;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
 }
 
+/* 레퍼런스처럼 작은 흰색 알약 버튼 */
 .explore-btn {
-  margin-top: 30px;
+  margin-top: 1.2cqh;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.6em;
+  padding: 0.7em 1.6em;
   border: none;
-  background: none;
-  font-family: var(--chapter-font);
+  border-radius: 999px;
+  background: #fbf6ec;
+  color: #24182e;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  font-size: clamp(18px, 2.2vw, 26px);
-  color: var(--ink);
+  font-size: min(3.4cqh, 4.2vw);
+  letter-spacing: 0.04em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.explore-btn:hover {
+  transform: translateY(-2px);
+  background: #fff;
+}
+
+.explore-btn .arrow {
+  width: 0.5em;
 }
 
 .chapter-nav {
@@ -621,10 +666,6 @@
 
     
 
-  .chapter-numeral {
-    font-size: 60vmin;
-    opacity: 0.6;
-  }
 }
 
 /* 손그림처럼 떨리는 제목 글자 */
@@ -660,19 +701,18 @@
 /* ---------- 챕터 3 편지봉투 ---------- */
 .letter-btn {
   position: absolute;
-  right: clamp(20px, 7vw, 120px);
-  bottom: clamp(70px, 12vh, 130px);
+  left: 53.5%;
+  top: 70.4%;
   z-index: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  width: 5.6%;
+  translate: -50% -100%;
+  padding: 0;
   border: none;
   background: none;
-  color: var(--ink);
-  font-family: var(--chapter-font);
-  font-weight: 600;
-  font-size: 15px;
+}
+
+.letter-btn .letter-icon {
+  width: 100%;
 }
 
 .letter-icon {
@@ -1003,5 +1043,113 @@
     top: auto;
     bottom: calc(clamp(28px, 7vh, 72px) + 72px);
     transform: translateX(-50%);
+  }
+}
+
+/* ---------- 풍경 애니메이션 ---------- */
+.land .tw {
+  animation: land-tw 3s ease-in-out infinite;
+}
+
+@keyframes land-tw {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.land .drift {
+  animation: land-drift 30s linear infinite;
+}
+
+@keyframes land-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-260px);
+  }
+}
+
+.land .shim {
+  animation: land-shim 2.4s ease-in-out infinite;
+}
+
+@keyframes land-shim {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.land .beam {
+  transform-origin: 820px 235px;
+  animation: land-beam 6s ease-in-out infinite;
+}
+
+@keyframes land-beam {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
+  45% {
+    transform: scaleX(0.05);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scaleX(-0.05);
+    opacity: 0;
+  }
+  55% {
+    transform: scaleX(0.05);
+    opacity: 0.2;
+  }
+}
+
+.land .lamp {
+  animation: land-lamp 6s ease-in-out infinite;
+}
+
+@keyframes land-lamp {
+  45%,
+  55% {
+    opacity: 0.4;
+  }
+}
+
+.land .ship {
+  animation: land-ship 26s ease-out forwards;
+}
+
+@keyframes land-ship {
+  from {
+    transform: translateX(160px);
+  }
+  to {
+    transform: translateX(-40px);
+  }
+}
+
+.land .gull {
+  animation: land-gull 9s ease-in-out infinite alternate;
+}
+
+.land .gull.g2 {
+  animation-duration: 11s;
+}
+
+.land .gull.g3 {
+  animation-duration: 7s;
+}
+
+@keyframes land-gull {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(60px, -14px);
   }
 }

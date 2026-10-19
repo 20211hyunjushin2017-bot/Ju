@@ -1,4 +1,4 @@
-import { useImperativeHandle, useRef, type Ref } from 'react'
+import { useImperativeHandle, useRef, type ReactNode, type Ref } from 'react'
 import { setTrainSpeed } from './sound'
 import { imgUrl } from './assets'
 
@@ -11,7 +11,18 @@ export type TrainHandle = {
 const STRIP_TILES = 13
 const img = imgUrl
 
-export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean }) {
+// children: 창문 안에 보이는 도착지 풍경 / overlay: 기차 그림 좌표 기준으로 실내에 놓는 요소 (예: 창턱 위 편지)
+export function TrainScene({
+  ref,
+  dim,
+  children,
+  overlay,
+}: {
+  ref?: Ref<TrainHandle>
+  dim: boolean
+  children?: ReactNode
+  overlay?: ReactNode
+}) {
   const sceneRef = useRef<HTMLDivElement>(null)
   const sharpRef = useRef<HTMLDivElement>(null)
   const blurRef = useRef<HTMLDivElement>(null)
@@ -85,9 +96,9 @@ export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean 
     ))
 
   return (
-    <div className="stage" aria-hidden="true">
+    <div className="stage">
       <div className="scene" ref={sceneRef}>
-        <img className="scene-img" src={img('train.webp')} alt="" />
+        <img className="scene-img" src={img('train.webp')} alt="" aria-hidden="true" />
         <div className="window">
           <div className="strip" ref={sharpRef}>
             {tiles('view.webp', 'view-mirror.webp')}
@@ -98,9 +109,11 @@ export function TrainScene({ ref, dim }: { ref?: Ref<TrainHandle>; dim: boolean 
             </div>
           </div>
           <div className="poles" ref={polesRef} />
+          {children}
         </div>
         {/* 창문 손잡이만 오려낸 이미지 (풍경 위에 고정) */}
-        <img className="latch" src={img('latch.png')} alt="" />
+        <img className="latch" src={img('latch.png')} alt="" aria-hidden="true" />
+        {overlay}
       </div>
       <div className={dim ? 'stage-shade on' : 'stage-shade'} />
     </div>

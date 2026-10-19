@@ -19,7 +19,9 @@ export type Chapter = {
   image?: string
   // 배경 위를 걸어 들어오는 캐릭터. x, y, w는 배경 이미지(1672×941) 기준 픽셀 위치
   walkers?: { src: string; x: number; y: number; w: number }[]
-  // true면 챕터 화면에 편지봉투 아이콘이 나오고, 누르면 마지막 페이지로 이동
+  // 창문 밖 도착지 풍경: stars(밤하늘, image+walkers 사용) / lighthouse(새벽 등대) / harbor(노을 항구)
+  scene: 'stars' | 'lighthouse' | 'harbor'
+  // true면 창턱 위에 편지봉투가 놓이고, 누르면 마지막 페이지로 이동
   letter?: boolean
   sections: Section[]
 }
@@ -64,6 +66,7 @@ export const chapters: Chapter[] = [
     title: '오션Way 2.0 & AX',
     subtitle: '[챕터 1 한 줄 소개]',
     theme: { bg: '#05060a', accent: '#16324a', ink: '#e6d6b4' },
+    scene: 'stars',
     image: 'ch1-bg.webp',
     walkers: [
       { src: 'ch1-hero-yellow.webp', x: 630, y: 650, w: 170 },
@@ -76,14 +79,16 @@ export const chapters: Chapter[] = [
     number: '02',
     title: '직무 교육과 교육 운영',
     subtitle: '[챕터 2 한 줄 소개]',
-    theme: { bg: '#1f4a45', accent: '#1f4a45', ink: '#f3ead8' },
+    theme: { bg: '#3b3477', accent: '#3b3477', ink: '#fbf6ec' },
+    scene: 'lighthouse',
     sections: placeholder('직무 교육과 교육 운영'),
   },
   {
     number: '03',
     title: 'HPSI',
     subtitle: '[챕터 3 한 줄 소개]',
-    theme: { bg: '#6b3a2e', accent: '#6b3a2e', ink: '#f6ecdc' },
+    theme: { bg: '#7b3a6e', accent: '#7b3a6e', ink: '#fff6e6' },
+    scene: 'harbor',
     letter: true,
     sections: placeholder('HPSI'),
   },
