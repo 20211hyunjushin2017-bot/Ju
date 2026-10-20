@@ -561,17 +561,22 @@ export default function App() {
   )
 
   // Start: 소개 장면부터 보여 줌
-  const start = () => {
+  // Start: 조선소 풍경 속을 잠시 달린 뒤 소개 장면으로
+  const start = async () => {
     // 첫 클릭 때 오디오를 켜 두면, 기차가 달릴 때만 소리가 납니다
     soundOn()
-    navId.current++
+    const id = ++navId.current
     setMenuOpen(false)
-    setPhase('slides')
+    setRideLines([])
+    setIsIntro(true)
+    setPhase('ride')
+    await train.current!.ride('view', 4500)
+    if (id === navId.current) setPhase('slides')
   }
 
-  // 소개 장면이 끝나면 기차 출발
+  // 소개 장면이 끝나면 챕터 1로 출발 (자막 없이 풍경만)
   const depart = async () => {
-    if (!(await ride(site.introCaptions, 0, 6000, true))) return
+    if (!(await ride([], 0, 6000, true))) return
     setPhase('chapter')
   }
 
@@ -690,7 +695,7 @@ export default function App() {
 
         {phase === 'ride' && (
           <motion.div key="ride" className="ride-layer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Captions lines={rideLines} interval={rideMs / (rideLines.length + 0.6)} />
+            {rideLines.length > 0 && <Captions lines={rideLines} interval={rideMs / (rideLines.length + 0.6)} />}
             {isIntro && (
               <button className="skip-btn" onClick={() => train.current?.skip()}>
                 SKIP INTRO <Arrow />

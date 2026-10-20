@@ -42,11 +42,6 @@ export const site = {
   ],
   // 그 다음 흰 배경 장면에 들어가는 그림
   introDiagram: 'od-system.png',
-  introCaptions: [
-    '하나의 여정, 세 개의 정거장.',
-    '한화오션에 입사한 날부터 지금까지,',
-    'OJT를 하며 배운 것들을 함께 둘러볼까요?',
-  ],
   // 마지막 페이지: 뜨개질로 떠지는 감사 문구. size는 글자 높이(코 수)
   thanks: [
     { text: 'special thanks to.', font: "'Jacquard 24', serif", size: 24 },
