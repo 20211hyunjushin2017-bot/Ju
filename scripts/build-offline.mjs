@@ -4,6 +4,7 @@
 // - 폰트는 사이트에 쓰인 글자만 골라 담아 용량을 줄입니다. (문구를 바꾸면 다시 실행하세요)
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join, extname } from 'node:path'
+import { execFileSync } from 'node:child_process'
 
 const root = new URL('..', import.meta.url).pathname
 const dist = join(root, 'dist')
@@ -71,6 +72,19 @@ const js = readFileSync(join(dist, 'assets', assets.find((f) => f.endsWith('.js'
 const css = readFileSync(join(dist, 'assets', assets.find((f) => f.endsWith('.css'))), 'utf8')
 if (/<\/script/i.test(js)) throw new Error('JS 안에 </script 문자열이 있어 인라인할 수 없어요')
 
+// 편집용 내용: src/content.ts 의 문구를 읽기 쉬운 형태로 파일 맨 위에 넣음
+const contentJson = execFileSync(
+  process.execPath,
+  [
+    '--experimental-strip-types',
+    '--no-warnings',
+    '--input-type=module',
+    '-e',
+    "const m = await import('./src/content.ts'); process.stdout.write(JSON.stringify({ site: m.site, chapters: m.chapters }, null, 2))",
+  ],
+  { cwd: root, encoding: 'utf8' },
+).replace(/<\//g, '<\\/')
+
 const fonts = await fontCss()
 const html = `<!doctype html>
 <html lang="ko">
@@ -78,6 +92,18 @@ const html = `<!doctype html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ocean Journey</title>
+<!--
+  ✏️ 내용 고치는 법
+  1. 이 파일을 메모장(또는 VS Code)으로 엽니다.
+  2. 바로 아래 window.__OCEAN_CONTENT 안의 "따옴표 안 글자"만 고칩니다.
+     - 따옴표("), 쉼표(,), 괄호({ } [ ])는 지우지 마세요.
+     - 줄바꿈은 \\n 으로 씁니다.
+  3. 저장한 뒤 크롬/엣지로 다시 열면 바뀐 내용이 보입니다.
+  * 그림·디자인은 이 블록에서 바꿀 수 없어요. 아래쪽 코드는 건드리지 마세요.
+-->
+<script>
+window.__OCEAN_CONTENT = ${contentJson};
+</script>
 <style>
 ${fonts}
 html, body { height: 100%; background: #1a0f08; color: #f3ead8; }

@@ -298,7 +298,27 @@ function ExploreCard({
               exit={{ opacity: 0, y: -12, filter: 'blur(6px)' }}
               transition={{ duration: 0.45, ease: [0.2, 0.7, 0.2, 1] }}
             >
-              {s.bullets ? (
+              {s.quote !== undefined ? (
+                <div className="xlist">
+                  <h3 className="xflow-title">
+                    <Accent text={s.heading} />
+                  </h3>
+                  <div className="xlist-grid">
+                    <blockquote className="xquote">
+                      <p>{s.quote}</p>
+                    </blockquote>
+                    {s.photo ? (
+                      <button className="xgallery-item xphoto" onClick={() => setZoom(s.photo!)}>
+                        <img src={imgUrl(s.photo.src)} alt={s.photo.alt} />
+                      </button>
+                    ) : (
+                      <div className="xphoto-slot" aria-label="사진 들어갈 자리">
+                        <span>사진 자리</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : s.bullets ? (
                 <div className="xlist">
                   <h3 className="xflow-title">
                     <Accent text={s.heading} />
@@ -354,7 +374,7 @@ function ExploreCard({
                   {s.body && <p>{s.body}</p>}
                 </div>
               )}
-              {!s.lead && !s.bullets && (s.image || s.points) && (
+              {!s.lead && !s.bullets && s.quote === undefined && (s.image || s.points) && (
                 <div className="xcard-side">
                   {s.image && <img src={imgUrl(s.image)} alt="" />}
                   {s.points && (

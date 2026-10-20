@@ -819,6 +819,50 @@
   transform: rotate(1deg);
 }
 
+/* 문장형 카드 */
+.xquote {
+  position: relative;
+  margin: 0;
+  padding-left: clamp(18px, 2vw, 28px);
+  border-left: 3px solid #141219;
+}
+
+.xquote p {
+  margin: 0;
+  font-family: 'NanumSquare Neo', 'Noto Sans KR', sans-serif;
+  font-weight: 700;
+  font-size: clamp(20px, 2.2vw, 32px);
+  line-height: 1.55;
+  letter-spacing: -0.015em;
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+
+.xphoto {
+  justify-self: center;
+  max-height: min(48vh, 420px);
+}
+
+.xphoto img {
+  object-fit: contain;
+}
+
+.xphoto-slot {
+  justify-self: center;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 4 / 3;
+  max-height: min(48vh, 420px);
+  display: grid;
+  place-items: center;
+  border: 2px dashed rgb(20 18 25 / 0.2);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.35);
+  color: #9a96a6;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+}
+
 .xzoom {
   position: absolute;
   inset: 0;

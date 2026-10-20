@@ -11,6 +11,9 @@ export type Section = {
   // 글머리표 카드: 왼쪽에 bullets, 오른쪽에 gallery 그림들 (public/images 파일 이름)
   bullets?: string[]
   gallery?: { src: string; alt: string }[]
+  // 문장형 카드: 왼쪽에 문장, 오른쪽에 그림 (photo가 없으면 사진 넣을 빈 자리)
+  quote?: string
+  photo?: { src: string; alt: string }
   // public/images 폴더에 넣은 파일 이름 (예: 'ch1-ax.webp')
   image?: string
 }
@@ -106,7 +109,11 @@ export const chapters: Chapter[] = [
           { src: 'ch1-ax-photostrip.webp', alt: 'AX THE OCEAN 포토 스트립' },
         ],
       },
-      ...placeholder('오션Way 2.0과 AX').slice(2),
+      {
+        heading: 'HERO 2.0 다른그림찾기 EVENT FT',
+        quote:
+          '메시지를 많이 전달하는 것보다, 구성원이 스스로 발견하고 자신의 일과 연결할 수 있도록 만드는 것이 더 중요할 수 있음',
+      },
     ],
   },
   {
@@ -133,3 +140,13 @@ export const chapters: Chapter[] = [
     sections: placeholder('HPSI'),
   },
 ]
+
+// 오프라인 HTML 파일 맨 위의 "편집용 내용" 블록(window.__OCEAN_CONTENT)이 있으면 그 내용으로 바꿔 씀
+declare global {
+  interface Window {
+    __OCEAN_CONTENT?: { site?: Partial<typeof site>; chapters?: Chapter[] }
+  }
+}
+const edited = typeof window !== 'undefined' ? window.__OCEAN_CONTENT : undefined
+if (edited?.site) Object.assign(site, edited.site)
+if (edited?.chapters) chapters.splice(0, chapters.length, ...edited.chapters)
