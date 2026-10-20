@@ -3,8 +3,11 @@
 
 export type Section = {
   heading: string
-  body: string
+  body?: string
   points?: string[]
+  // 흐름형 카드: lead(크게) → 아래 화살표 → then(이어진 일들)
+  lead?: string
+  then?: string[]
   // public/images 폴더에 넣은 파일 이름 (예: 'ch1-ax.webp')
   image?: string
 }
@@ -81,7 +84,14 @@ export const chapters: Chapter[] = [
       { src: 'ch1-hero-blue.webp', x: 800, y: 650, w: 175 },
       { src: 'ch1-hero-green.webp', x: 940, y: 650, w: 210 },
     ],
-    sections: placeholder('오션Way 2.0과 AX'),
+    sections: [
+      {
+        heading: '첫 업무',
+        lead: 'AX 수용성 강화 Workshop\n공지 및 배너 제작',
+        then: ['구성원 대상 워크샵 Co-ft', 'HERO 2.0 다른그림찾기 Event'],
+      },
+      ...placeholder('오션Way 2.0과 AX').slice(1),
+    ],
   },
   {
     number: '02',

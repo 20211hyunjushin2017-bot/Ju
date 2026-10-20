@@ -292,13 +292,41 @@ function ExploreCard({
               exit={{ opacity: 0, y: -12, filter: 'blur(6px)' }}
               transition={{ duration: 0.45, ease: [0.2, 0.7, 0.2, 1] }}
             >
-              <div className="xcard-main">
-                <h3>
-                  <Accent text={s.heading} />
-                </h3>
-                <p>{s.body}</p>
-              </div>
-              {(s.image || s.points) && (
+              {s.lead ? (
+                <div className="xflow">
+                  <h3 className="xflow-title">
+                    <Accent text={s.heading} />
+                  </h3>
+                  <div className="xflow-box">
+                    <p className="xflow-lead">
+                      {s.lead.split('\n').map((line, j) => (
+                        <span key={j}>{line}</span>
+                      ))}
+                    </p>
+                    {s.then && (
+                      <>
+                        <svg className="xflow-arrow" viewBox="0 0 24 60" aria-hidden="true">
+                          <path d="M12 3 C 11.4 20, 12.6 36, 12 54" />
+                          <path d="M4 44 C 7 47.5, 9.6 50.5, 12 55 C 14.4 50.5, 17 47.5, 20 44" />
+                        </svg>
+                        <ul className="xflow-then">
+                          {s.then.map((t, j) => (
+                            <li key={j}>{t}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="xcard-main">
+                  <h3>
+                    <Accent text={s.heading} />
+                  </h3>
+                  {s.body && <p>{s.body}</p>}
+                </div>
+              )}
+              {!s.lead && (s.image || s.points) && (
                 <div className="xcard-side">
                   {s.image && <img src={imgUrl(s.image)} alt="" />}
                   {s.points && (

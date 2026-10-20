@@ -643,6 +643,80 @@
   filter: none;
 }
 
+/* 흐름형 카드: 제목은 왼쪽 위, 내용은 가운데 회색 상자 */
+.xflow {
+  grid-column: 1 / -1;
+  align-self: stretch;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  min-height: 0;
+}
+
+.xflow-title {
+  margin: 0;
+  font-family: 'NanumSquare Neo', 'Noto Sans KR', sans-serif;
+  font-weight: 800;
+  font-size: clamp(22px, 2.2vw, 30px);
+  letter-spacing: -0.01em;
+}
+
+.xflow-box {
+  justify-self: center;
+  align-self: center;
+  width: min(100%, 760px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 2.4vh, 24px);
+  padding: clamp(26px, 5vh, 48px) clamp(18px, 4vw, 48px);
+  border-radius: 18px;
+  background: rgb(20 18 25 / 0.06);
+  text-align: center;
+  font-family: 'NanumSquare Neo', 'Noto Sans KR', sans-serif;
+}
+
+.xflow-lead {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-weight: 800;
+  font-size: clamp(24px, 3vw, 42px);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+
+.xflow-arrow {
+  width: 18px;
+  height: clamp(36px, 6vh, 56px);
+  fill: none;
+  stroke: #8e8a98;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.xflow-then {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.xflow-then li {
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgb(20 14 40 / 0.08);
+  font-weight: 700;
+  font-size: clamp(15px, 1.4vw, 19px);
+  word-break: keep-all;
+}
+
 @media (max-width: 760px) {
   .xcard {
     height: min(86vh, 760px);
