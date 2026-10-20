@@ -35,6 +35,13 @@ export const site = {
   badgeBottom: 'JOURNEY',
   badgeSub: 'MY OJT LOG',
   byline: '기업문화혁신팀 신현주 사원',
+  // Start 다음에 나오는 소개 장면 (검은 배경 흰 글씨). 줄바꿈은 \n
+  introSlides: [
+    '조선업의 이해, HR실 내 각 팀의 업무 개론\n(조직 구조, 인사발령, 채용 프로세스, 노무의 기초 등)',
+    '우리 팀의 역할부터 Ocean Way2.0과 AX,\n리더십과 변화관리, HPSI',
+  ],
+  // 그 다음 흰 배경 장면에 들어가는 그림
+  introDiagram: 'od-system.png',
   introCaptions: [
     '하나의 여정, 세 개의 정거장.',
     '한화오션에 입사한 날부터 지금까지,',

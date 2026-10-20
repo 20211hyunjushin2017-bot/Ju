@@ -5,6 +5,7 @@
 - 문구 수정: `src/content.ts` (`[ ]`로 표시된 자리를 채우면 됩니다)
 - 이미지 추가: `public/images/`에 넣고 `content.ts`의 `image` 항목에 파일 이름 입력
 - 기차 장면·창밖 풍경: `src/TrainScene.tsx`, 주행음: `src/sound.ts`
+- 소개 장면 글씨체(나눔스퀘어 네오)는 쓰인 글자만 담아 `src/nanum.css`에 들어 있어요. 문구를 바꾸면 `python3 scripts/subset-nanum.py`로 다시 만드세요 (fonttools 필요)
 - 인터넷 없이 여는 파일 만들기: `npm run build:offline` → `offline/ocean-journey.html` (이미지·폰트 포함, 더블클릭으로 열기)
 
 

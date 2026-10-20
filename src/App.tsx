@@ -6,8 +6,9 @@ import { KnitThanks } from './KnitThanks'
 import { imgUrl } from './assets'
 import { soundOn } from './sound'
 import './App.css'
+import './nanum.css'
 
-type Phase = 'landing' | 'ride' | 'chapter' | 'thanks'
+type Phase = 'landing' | 'slides' | 'ride' | 'chapter' | 'thanks'
 
 
 // 첫 화면 제목: 스크립트체 T + 고전 세리프, 손으로 쓴 듯한 whimsical 느낌
@@ -82,6 +83,71 @@ function HeroTitle() {
         </svg>
       ))}
     </div>
+  )
+}
+
+// 손으로 그은 화살표 (첫 화면 Start, 소개 장면에서 같이 씀)
+function InkArrow() {
+  return (
+    <svg className="start-arrow" viewBox="0 0 120 24" aria-hidden="true">
+      <path d="M3 13.2 C 30 11.6, 62 12.9, 112 11.4" />
+      <path d="M97 3.5 C 103 7, 108 9.6, 113.5 11.5 C 108 13.6, 103 16.6, 97.5 20.5" />
+    </svg>
+  )
+}
+
+// Start 다음 소개 장면: 검은 배경 글 두 장 → 흰 배경 그림 한 장
+function IntroSlides({ onDone }: { onDone: () => void }) {
+  const [i, setI] = useState(0)
+  const count = site.introSlides.length + 1
+  const next = () => (i < count - 1 ? setI(i + 1) : onDone())
+  const prev = () => setI((n) => Math.max(0, n - 1))
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') next()
+      if (e.key === 'ArrowLeft') prev()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+  const isDiagram = i === count - 1
+  return (
+    <motion.div
+      className={isDiagram ? 'slides light' : 'slides'}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.8 }}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={i}
+          className="slide"
+          initial={{ opacity: 0, y: 14, filter: 'blur(6px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
+          transition={{ duration: 0.7, ease: [0.2, 0.7, 0.2, 1] }}
+        >
+          {isDiagram ? (
+            <img className="slide-diagram" src={imgUrl(site.introDiagram)} alt="오션의 OD 시스템" />
+          ) : (
+            <p className="slide-text">
+              {site.introSlides[i].split('\n').map((line, j) => (
+                <span key={j}>{line}</span>
+              ))}
+            </p>
+          )}
+        </motion.div>
+      </AnimatePresence>
+      <button className="slide-next" onClick={next} aria-label={isDiagram ? '여정 시작하기' : '다음'}>
+        <InkArrow />
+      </button>
+      <div className="slide-dots" aria-hidden="true">
+        {Array.from({ length: count }, (_, k) => (
+          <span key={k} className={k === i ? 'on' : ''} />
+        ))}
+      </div>
+    </motion.div>
   )
 }
 
@@ -494,9 +560,17 @@ export default function App() {
     [ride],
   )
 
-  const start = async () => {
+  // Start: 소개 장면부터 보여 줌
+  const start = () => {
     // 첫 클릭 때 오디오를 켜 두면, 기차가 달릴 때만 소리가 납니다
     soundOn()
+    navId.current++
+    setMenuOpen(false)
+    setPhase('slides')
+  }
+
+  // 소개 장면이 끝나면 기차 출발
+  const depart = async () => {
     if (!(await ride(site.introCaptions, 0, 6000, true))) return
     setPhase('chapter')
   }
@@ -594,10 +668,7 @@ export default function App() {
             >
               <button className="start-link" onClick={start}>
                 {/* 제목의 긴 선과 같은 잉크 느낌으로 손으로 그은 화살표 */}
-                <svg className="start-arrow" viewBox="0 0 120 24" aria-hidden="true">
-                  <path d="M3 13.2 C 30 11.6, 62 12.9, 112 11.4" />
-                  <path d="M97 3.5 C 103 7, 108 9.6, 113.5 11.5 C 108 13.6, 103 16.6, 97.5 20.5" />
-                </svg>
+                <InkArrow />
                 <span>Start</span>
               </button>
             </motion.div>
@@ -614,6 +685,8 @@ export default function App() {
             </div>
           </motion.div>
         )}
+
+        {phase === 'slides' && <IntroSlides key="slides" onDone={() => void depart()} />}
 
         {phase === 'ride' && (
           <motion.div key="ride" className="ride-layer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -633,7 +706,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {phase !== 'landing' && phase !== 'thanks' && (
+      {phase !== 'landing' && phase !== 'thanks' && phase !== 'slides' && (
         <>
           <div className="badge" aria-label={`${site.badgeTop} ${site.badgeBottom}`}>
             <span className="badge-main">
