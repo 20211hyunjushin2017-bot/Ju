@@ -229,6 +229,8 @@ function ExploreCard({
   onNext: () => void
 }) {
   const [idx, setIdx] = useState(0)
+  // 카드 안 그림을 크게 보기
+  const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null)
   const total = chapter.sections.length
   const s = chapter.sections[idx]
   const go = (d: number) => setIdx((i) => Math.min(total - 1, Math.max(0, i + d)))
@@ -236,6 +238,10 @@ function ExploreCard({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (zoom) {
+        if (e.key === 'Escape') setZoom(null)
+        return
+      }
       if (e.key === 'Escape') onClose()
       if (e.key === 'ArrowRight') go(1)
       if (e.key === 'ArrowLeft') go(-1)
@@ -292,7 +298,29 @@ function ExploreCard({
               exit={{ opacity: 0, y: -12, filter: 'blur(6px)' }}
               transition={{ duration: 0.45, ease: [0.2, 0.7, 0.2, 1] }}
             >
-              {s.lead ? (
+              {s.bullets ? (
+                <div className="xlist">
+                  <h3 className="xflow-title">
+                    <Accent text={s.heading} />
+                  </h3>
+                  <div className="xlist-grid">
+                    <ul className="xlist-bullets">
+                      {s.bullets.map((b, j) => (
+                        <li key={j}>{b}</li>
+                      ))}
+                    </ul>
+                    {s.gallery && (
+                      <div className={`xgallery n${s.gallery.length}`}>
+                        {s.gallery.map((g, j) => (
+                          <button key={g.src} className={`xgallery-item g${j + 1}`} onClick={() => setZoom(g)}>
+                            <img src={imgUrl(g.src)} alt={g.alt} />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : s.lead ? (
                 <div className="xflow">
                   <h3 className="xflow-title">
                     <Accent text={s.heading} />
@@ -326,7 +354,7 @@ function ExploreCard({
                   {s.body && <p>{s.body}</p>}
                 </div>
               )}
-              {!s.lead && (s.image || s.points) && (
+              {!s.lead && !s.bullets && (s.image || s.points) && (
                 <div className="xcard-side">
                   {s.image && <img src={imgUrl(s.image)} alt="" />}
                   {s.points && (
@@ -342,6 +370,28 @@ function ExploreCard({
                 </div>
               )}
             </motion.div>
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {zoom && (
+              <motion.button
+                className="xzoom"
+                onClick={() => setZoom(null)}
+                aria-label="크게 보기 닫기"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.img
+                  src={imgUrl(zoom.src)}
+                  alt={zoom.alt}
+                  initial={{ scale: 0.92 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0.95 }}
+                  transition={{ type: 'spring', damping: 26, stiffness: 260 }}
+                />
+              </motion.button>
+            )}
           </AnimatePresence>
 
           <footer className="xcard-foot">

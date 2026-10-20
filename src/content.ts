@@ -8,6 +8,9 @@ export type Section = {
   // 흐름형 카드: lead(크게) → 아래 화살표 → then(이어진 일들)
   lead?: string
   then?: string[]
+  // 글머리표 카드: 왼쪽에 bullets, 오른쪽에 gallery 그림들 (public/images 파일 이름)
+  bullets?: string[]
+  gallery?: { src: string; alt: string }[]
   // public/images 폴더에 넣은 파일 이름 (예: 'ch1-ax.webp')
   image?: string
 }
@@ -90,7 +93,20 @@ export const chapters: Chapter[] = [
         lead: 'AX 수용성 강화 Workshop\n공지 및 배너 제작',
         then: ['구성원 대상 워크샵 Co-ft', 'HERO 2.0 다른그림찾기 Event'],
       },
-      ...placeholder('오션Way 2.0과 AX').slice(1),
+      {
+        heading: 'AX 수용성 강화 Workshop Co-ft',
+        bullets: [
+          '사업부와 직무별 업무 병목과 고민, 다양한 구성원과의 소통',
+          'AX와 전사 워크샵 관련 구성원 공감대 확인',
+          '직원 커뮤니케이션: CEO레터, 스크린세이버, 포탈 로고 등',
+        ],
+        gallery: [
+          { src: 'ch1-ax-screensaver.webp', alt: 'HERO 2.0 WORKSHOP 시작 화면' },
+          { src: 'ch1-ax-stickers.webp', alt: 'HERO 2.0 WORKSHOP 히어로별 카드 3종' },
+          { src: 'ch1-ax-photostrip.webp', alt: 'AX THE OCEAN 포토 스트립' },
+        ],
+      },
+      ...placeholder('오션Way 2.0과 AX').slice(2),
     ],
   },
   {
